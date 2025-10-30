@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from . models import Authenticate
+from .models import WardrobeItem
 
-class AuthenticateSerializer(serializers.ModelSerializer):
+class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Authenticate
-        fields = ["username", "password"]
-        
+        model = WardrobeItem
+        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name"]
