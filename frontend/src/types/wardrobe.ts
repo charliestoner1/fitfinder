@@ -1,3 +1,5 @@
+// frontend/src/types/wardrobe.ts
+
 export interface ClothingItem {
   id: number;
   user: number;
