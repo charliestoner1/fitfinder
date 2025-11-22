@@ -67,4 +67,85 @@ class WardrobeItem(models.Model):
         return self.name 
 
 
+# outfit models
 
+class Outfit(models.Model):
+    """
+    Represents a saved outfit created by a user
+    """
+    OCCASION_CHOICES = [
+        ('casual', 'Casual'),
+        ('work', 'Work'),
+        ('formal', 'Formal'),
+        ('party', 'Party'),
+        ('date', 'Date'),
+        ('gym', 'Gym'),
+        ('outdoor', 'Outdoor'),
+        ('beach', 'Beach'),
+    ]
+    
+    SEASON_CHOICES = [
+        ('spring', 'Spring'),
+        ('summer', 'Summer'),
+        ('fall', 'Fall'),
+        ('winter', 'Winter'),
+        ('all', 'All Seasons'),
+    ]
+    
+    # Basic fields
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='outfits')
+    name = models.CharField(max_length=100)
+    occasion = models.CharField(max_length=20, choices=OCCASION_CHOICES, blank=True, null=True)
+    season = models.CharField(max_length=20, choices=SEASON_CHOICES, blank=True, null=True)
+    
+    # Optional preview image 
+    preview_image = models.ImageField(upload_to='outfits/previews/', blank=True, null=True)
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    likes = models.IntegerField(default=0)
+    tags = models.JSONField(default=list, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"{self.name} - {self.user.username}"
+
+
+class OutfitItem(models.Model):
+    """
+    Represents a clothing item placed in an outfit with position/size data
+    """
+    LAYER_CHOICES = [
+        ('tops', 'Tops'),
+        ('bottoms', 'Bottoms'),
+        ('mid', 'Mid Layer'),
+        ('outer', 'Outer Layer'),
+        ('accessory', 'Accessory'),
+    ]
+    
+    outfit = models.ForeignKey(Outfit, on_delete=models.CASCADE, related_name='items')
+    clothing_item = models.ForeignKey(WardrobeItem, on_delete=models.CASCADE)
+    
+    # Layer management
+    layer = models.CharField(max_length=20, choices=LAYER_CHOICES)
+    z_index = models.IntegerField(default=0)
+    
+    # Position on canvas
+    position_x = models.FloatField(default=0)
+    position_y = models.FloatField(default=0)
+    
+    # Size on canvas
+    size_width = models.FloatField(default=150)
+    size_height = models.FloatField(default=150)
+    
+    # Rotation
+    rotation = models.FloatField(default=0)  # Degrees (0-360)
+    
+    class Meta:
+        ordering = ['z_index']
+        
+    def __str__(self):
+        return f"{self.clothing_item.name} in {self.outfit.name}"
