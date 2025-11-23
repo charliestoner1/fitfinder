@@ -29,7 +29,7 @@ export interface CreateOutfitRequest {
   occasion?: string;
   season?: string;
   items: Array<{
-    clothing_item_id: string;
+    clothing_item_id:number;
     layer: string;
     position_x: number;
     position_y: number;
@@ -77,7 +77,7 @@ export async function createOutfit(outfit: Outfit): Promise<OutfitResponse> {
     occasion: outfit.occasion,
     season: outfit.season,
     items: outfit.items.map((item) => ({
-      clothing_item_id: item.id,
+      clothing_item_id: parseInt(item.id),
       layer: item.layer,
       position_x: item.position.x,
       position_y: item.position.y,
@@ -125,7 +125,7 @@ export async function updateOutfit(
   if (outfit.season) request.season = outfit.season;
   if (outfit.items) {
     request.items = outfit.items.map((item) => ({
-      clothing_item_id: item.id,
+      clothing_item_id: parseInt(item.id),
       layer: item.layer,
       position_x: item.position.x,
       position_y: item.position.y,

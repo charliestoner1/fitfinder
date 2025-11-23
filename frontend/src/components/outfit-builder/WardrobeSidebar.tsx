@@ -1,6 +1,4 @@
-
 // src/components/outfit-builder/WardrobeSidebar.tsx
-
 
 'use client';
 
@@ -11,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shirt, ShoppingBag, Layers, Layers2, Watch, Search } from 'lucide-react';
+import { Shirt, ShoppingBag, Layers, Layers2, Watch, Search, Loader2 } from 'lucide-react';
+import  apiClient  from '@/lib/api/client';
+import { toast } from 'sonner';
 
 interface WardrobeItemCardProps {
   item: ClothingItem;
@@ -52,7 +52,7 @@ function WardrobeItemCard({ item, layer, onAddToCanvas }: WardrobeItemCardProps)
       <div className="p-2.5">
         <p className="truncate text-xs font-semibold">{item.category}</p>
         <div className="mt-1.5 flex gap-1">
-          {item.colors.slice(0, 3).map((color, idx) => (
+          {item.colors && item.colors.slice(0, 3).map((color, idx) => (
             <div
               key={idx}
               className="h-4 w-4 rounded-full border-2 border-gray-200 shadow-sm"
@@ -98,158 +98,65 @@ const LAYER_DESCRIPTIONS = {
   accessory: 'Hats, scarves, belts, jewelry, bags, and shoes',
 };
 
+// Backend response interface
+interface BackendWardrobeItem {
+  id: number;
+  item_image: string;
+  category: string;
+  season?: string;
+  brand?: string;
+  material?: string;
+  price?: number;
+  name?: string;
+}
+
 export function WardrobeSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const wardrobeItems = useOutfitBuilderStore((state) => state.wardrobeItems);
   const addItemToCanvas = useOutfitBuilderStore((state) => state.addItemToCanvas);
   const setWardrobeItems = useOutfitBuilderStore((state) => state.setWardrobeItems);
 
-  // TODO: Fetch wardrobe items from API
-  // Once Thai-Son finishes the backend, replace mock data with this:
-  /*
   useEffect(() => {
     const fetchWardrobeItems = async () => {
+      setIsLoading(true);
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-        const response = await axios.get(`${API_URL}/wardrobe/items/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
+        const response = await apiClient.get<BackendWardrobeItem[]>('/wardrobe/items/');
         
-        const { keysToCamelCase } = await import('@/lib/utils/case-transformer');
-        const transformedData = keysToCamelCase<ClothingItem[]>(response.data);
-        setWardrobeItems(transformedData);
-      } catch (error) {
+        // Transform backend data to frontend ClothingItem format
+        const transformedItems: ClothingItem[] = response.data.map(item => ({
+          id: item.id.toString(), // Convert number to string for frontend
+          imageUrl: item.item_image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image',
+          category: item.name || item.category || 'Uncategorized',
+          colors: ['#CCCCCC'], // Default color - can be enhanced with ML tagging later
+          season: item.season,
+          brand: item.brand,
+        }));
+        
+        console.log('Loaded wardrobe items:', transformedItems);
+        setWardrobeItems(transformedItems);
+      } catch (error: any) {
         console.error('Error fetching wardrobe items:', error);
+        toast.error('Failed to load wardrobe items');
+        
+        // Fallback to empty array if API fails
+        setWardrobeItems([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchWardrobeItems();
   }, [setWardrobeItems]);
-  */
-  
-  useEffect(() => {
-    // Mock data for development - includes various item types
-    const mockItems: ClothingItem[] = [
-      // Tops
-      {
-        id: '1',
-        imageUrl: 'https://via.placeholder.com/200/FF6B6B/FFFFFF?text=Red+T-Shirt',
-        category: 'T-Shirt',
-        colors: ['#FF6B6B', '#FFFFFF'],
-        season: 'summer',
-        brand: 'Nike',
-      },
-      {
-        id: '3',
-        imageUrl: 'https://via.placeholder.com/200/95E1D3/000000?text=White+Shirt',
-        category: 'Shirt',
-        colors: ['#95E1D3', '#FFFFFF'],
-        season: 'all',
-        brand: 'H&M',
-      },
-      {
-        id: '11',
-        imageUrl: 'https://via.placeholder.com/200/C7CEEA/000000?text=Blue+Blouse',
-        category: 'Blouse',
-        colors: ['#C7CEEA'],
-        season: 'spring',
-        brand: 'Zara',
-      },
-      
-      // Bottoms
-      {
-        id: '2',
-        imageUrl: 'https://via.placeholder.com/200/4ECDC4/FFFFFF?text=Blue+Jeans',
-        category: 'Jeans',
-        colors: ['#4ECDC4'],
-        season: 'all',
-        brand: "Levi's",
-      },
-      {
-        id: '4',
-        imageUrl: 'https://via.placeholder.com/200/3D3D3D/FFFFFF?text=Black+Pants',
-        category: 'Pants',
-        colors: ['#000000'],
-        season: 'all',
-        brand: 'Zara',
-      },
-      {
-        id: '12',
-        imageUrl: 'https://via.placeholder.com/200/B8E994/000000?text=Khaki+Shorts',
-        category: 'Shorts',
-        colors: ['#B8E994'],
-        season: 'summer',
-        brand: 'Gap',
-      },
-      
-      // Mid-layer
-      {
-        id: '5',
-        imageUrl: 'https://via.placeholder.com/200/AA96DA/FFFFFF?text=Purple+Sweater',
-        category: 'Sweater',
-        colors: ['#AA96DA'],
-        season: 'winter',
-        brand: 'Gap',
-      },
-      {
-        id: '6',
-        imageUrl: 'https://via.placeholder.com/200/FCBAD3/000000?text=Pink+Hoodie',
-        category: 'Hoodie',
-        colors: ['#FCBAD3'],
-        season: 'fall',
-        brand: 'Adidas',
-      },
-      
-      // Outer layer
-      {
-        id: '7',
-        imageUrl: 'https://via.placeholder.com/200/A8D8EA/000000?text=Light+Jacket',
-        category: 'Jacket',
-        colors: ['#A8D8EA'],
-        season: 'spring',
-        brand: 'North Face',
-      },
-      {
-        id: '8',
-        imageUrl: 'https://via.placeholder.com/200/FFD93D/000000?text=Yellow+Coat',
-        category: 'Coat',
-        colors: ['#FFD93D'],
-        season: 'winter',
-        brand: 'Patagonia',
-      },
-      
-      // Accessories
-      {
-        id: '9',
-        imageUrl: 'https://via.placeholder.com/200/6BCB77/FFFFFF?text=Green+Hat',
-        category: 'Hat',
-        colors: ['#6BCB77'],
-        season: 'summer',
-        brand: 'Generic',
-      },
-      {
-        id: '10',
-        imageUrl: 'https://via.placeholder.com/200/4D96FF/FFFFFF?text=Blue+Scarf',
-        category: 'Scarf',
-        colors: ['#4D96FF'],
-        season: 'winter',
-        brand: 'Generic',
-      },
-    ];
-    
-    setWardrobeItems(mockItems);
-  }, [setWardrobeItems]);
 
   const getItemsByCategory = (items: ClothingItem[], layer: ClothingLayer) => {
     // More flexible category matching
     const categoryMap: Record<ClothingLayer, string[]> = {
-      tops: ['t-shirt', 'shirt', 'blouse', 'top', 'dress', 'tank', 'polo', 'turtleneck'],
-      bottoms: ['pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings'],
-      mid: ['sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt'],
+      tops: ['t-shirt', 'shirt', 'blouse', 'top', 'dress', 'tank', 'polo', 'turtleneck', 'tops'],
+      bottoms: ['pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings', 'bottoms'],
+      mid: ['sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt', 'innerwear'],
       outer: ['jacket', 'coat', 'blazer', 'parka', 'outerwear', 'windbreaker'],
-      accessory: ['hat', 'scarf', 'belt', 'jewelry', 'bag', 'shoes', 'watch', 'accessory', 'socks', 'tie'],
+      accessory: ['hat', 'scarf', 'belt', 'jewelry', 'bag', 'shoes', 'watch', 'accessory', 'socks', 'tie', 'accessories'],
     };
 
     // Filter by layer
@@ -266,12 +173,23 @@ export function WardrobeSidebar() {
       filteredItems = filteredItems.filter(item =>
         item.category.toLowerCase().includes(query) ||
         item.brand?.toLowerCase().includes(query) ||
-        item.colors.some(color => color.toLowerCase().includes(query))
+        (item.colors && item.colors.some(color => color.toLowerCase().includes(query)))
       );
     }
 
     return filteredItems;
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-full bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">Loading your wardrobe...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full bg-white">
@@ -286,7 +204,7 @@ export function WardrobeSidebar() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search by name, brand, or color..."
+            placeholder="Search by name or brand..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-9 h-9 text-sm"
@@ -333,8 +251,12 @@ export function WardrobeSidebar() {
               <ScrollArea className="h-[calc(100%-80px)]">
                 {layerItems.length === 0 ? (
                   <div className="flex h-40 items-center justify-center text-gray-400">
-                    <p className="text-sm">
-                      {searchQuery ? 'No items match your search' : 'No items in this category'}
+                    <p className="text-sm text-center">
+                      {searchQuery 
+                        ? 'No items match your search' 
+                        : wardrobeItems.length === 0
+                        ? 'Your wardrobe is empty. Add some items first!'
+                        : 'No items in this category'}
                     </p>
                   </div>
                 ) : (
@@ -357,4 +279,3 @@ export function WardrobeSidebar() {
     </div>
   );
 }
-

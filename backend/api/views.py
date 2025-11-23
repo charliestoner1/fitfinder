@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from rest_framework import generics, viewsets, permissions
+from rest_framework import generics, viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import JsonResponse
 from .models import *
@@ -32,6 +33,119 @@ class RegisterViewset(viewsets.ViewSet):
 def test(request):
     message = "Hello from Fitfinder :)"
     return JsonResponse(message, safe=False)
+
+class OutfitViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for outfit CRUD operations
+    Endpoints:
+    - GET /api/outfits/ - List all user's outfits
+    - POST /api/outfits/ - Create new outfit
+    - GET /api/outfits/{id}/ - Get specific outfit
+    - PUT/PATCH /api/outfits/{id}/ - Update outfit
+    - DELETE /api/outfits/{id}/ - Delete outfit
+    - POST /api/outfits/{id}/upload-preview/ - Upload preview image
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        # Only return outfits for the current user
+        #if self.request.user.is_authenticated:
+           # return Outfit.objects.filter(user=self.request.user).prefetch_related('items__clothing_item')
+        #return Outfit.objects.none()  # Return empty queryset for anonymous users
+        return Outfit.objects.all().prefetch_related('items__clothing_item')
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return OutfitCreateUpdateSerializer
+        return OutfitSerializer
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Create a new outfit
+        POST /api/outfits/
+        
+        Expected JSON:
+        {
+            "name": "Summer Casual",
+            "occasion": "casual",
+            "season": "summer",
+            "items": [
+                {
+                    "clothing_item_id": "1",
+                    "layer": "tops",
+                    "position_x": 100,
+                    "position_y": 50,
+                    "size_width": 150,
+                    "size_height": 150,
+                    "rotation": 0,
+                    "z_index": 1
+                }
+            ]
+        }
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        outfit = serializer.save()
+        
+        # Return full outfit data with nested items
+        output_serializer = OutfitSerializer(outfit, context={'request': request})
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Update an existing outfit
+        PUT/PATCH /api/outfits/{id}/
+        """
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        outfit = serializer.save()
+        
+        # Return full outfit data
+        output_serializer = OutfitSerializer(outfit, context={'request': request})
+        return Response(output_serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def upload_preview(self, request, pk=None):
+        """
+        Upload a preview image for an outfit
+        POST /api/outfits/{id}/upload-preview/
+        
+        Expects: multipart/form-data with 'preview_image' file
+        """
+        outfit = self.get_object()
+        
+        if 'preview_image' not in request.FILES:
+            return Response(
+                {'error': 'No preview_image file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        outfit.preview_image = request.FILES['preview_image']
+        outfit.save()
+        
+        serializer = OutfitSerializer(outfit, context={'request': request})
+        return Response({
+            'preview_image_url': serializer.data['preview_image_url']
+        })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     

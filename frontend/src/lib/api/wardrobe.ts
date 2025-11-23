@@ -1,3 +1,4 @@
+// frontend/src/lib/api/wardrobe.ts
 import api from './client';
 import { ClothingItem, ClothingItemCreate, ClothingItemUpdate } from '@/types/wardrobe';
 
