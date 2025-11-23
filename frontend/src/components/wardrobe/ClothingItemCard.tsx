@@ -1,10 +1,11 @@
 // File: src/components/wardrobe/ClothingItemCard.tsx
 // Individual clothing item card with image, metadata, and actions
+// Fixed to match Django backend model fields
 
 'use client';
 
 import { useState } from 'react';
-import { MoreVertical, Trash2, Edit, Tag, Calendar } from 'lucide-react';
+import { MoreVertical, Trash2, Edit, Tag, Calendar, Package } from 'lucide-react';
 import { ClothingItem } from '@/types/wardrobe';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,8 +43,8 @@ export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
         {/* Image */}
         <div className="relative aspect-square bg-gray-100">
           <img
-            src={item.image}
-            alt={item.category || 'Clothing item'}
+            src={item.itemImage}
+            alt={item.name || item.category || 'Clothing item'}
             className="w-full h-full object-cover"
           />
           
@@ -79,56 +80,47 @@ export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
         {/* Details */}
         <CardContent className="p-4">
           <div className="space-y-2">
+            {/* Item Name */}
+            {item.name && (
+              <div className="flex items-center gap-2">
+                <Package className="w-3 h-3 text-gray-400" />
+                <span className="text-sm font-semibold text-gray-900">
+                  {item.name}
+                </span>
+              </div>
+            )}
+
             {/* Category */}
             {item.category && (
               <div className="flex items-center gap-2">
                 <Tag className="w-3 h-3 text-gray-400" />
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-xs text-gray-600">
                   {item.category}
                 </span>
               </div>
             )}
 
             {/* Season */}
-            {item.season && (
+            {item.season && item.season !== 'None' && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-3 h-3 text-gray-400" />
                 <span className="text-xs text-gray-600">{item.season}</span>
               </div>
             )}
 
-            {/* Colors */}
-            {item.colors && item.colors.length > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {item.colors.slice(0, 3).map((color, index) => (
-                    <div
-                      key={index}
-                      className="w-4 h-4 rounded-full border border-gray-300"
-                      style={{ backgroundColor: color }}
-                      title={color}
-                    />
-                  ))}
-                  {item.colors.length > 3 && (
-                    <span className="text-xs text-gray-500 ml-1">
-                      +{item.colors.length - 3}
-                    </span>
-                  )}
-                </div>
+            {/* Brand & Price */}
+            {(item.brand || item.price) && (
+              <div className="flex items-center justify-between pt-2 border-t">
+                {item.brand && (
+                  <span className="text-xs text-gray-500">{item.brand}</span>
+                )}
+                {item.price && (
+                  <span className="text-sm font-semibold text-gray-900">
+                    ${Number(item.price).toFixed(2)}
+                  </span>
+                )}
               </div>
             )}
-
-            {/* Brand & Price */}
-            <div className="flex items-center justify-between pt-2 border-t">
-              {item.brand && (
-                <span className="text-xs text-gray-500">{item.brand}</span>
-              )}
-              {item.price && (
-                <span className="text-sm font-semibold text-gray-900">
-                  ${item.price.toFixed(2)}
-                </span>
-              )}
-            </div>
 
             {/* Material */}
             {item.material && (
@@ -146,7 +138,7 @@ export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
           <DialogHeader>
             <DialogTitle>Delete Item</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove this item from your wardrobe? This action cannot be undone.
+              Are you sure you want to remove &quot;{item.name}&quot; from your wardrobe? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
