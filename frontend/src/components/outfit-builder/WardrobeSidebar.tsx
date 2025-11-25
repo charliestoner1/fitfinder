@@ -85,8 +85,8 @@ const LAYER_ICONS = {
 const LAYER_LABELS = {
   tops: 'Tops',
   bottoms: 'Bottoms',
-  mid: 'Mid-Layer',
-  outer: 'Outer Layer',
+  mid: 'Mid',
+  outer: 'Outer',
   accessory: 'Accessories',
 };
 
@@ -152,12 +152,12 @@ export function WardrobeSidebar() {
   const getItemsByCategory = (items: ClothingItem[], layer: ClothingLayer) => {
     // More flexible category matching
     const categoryMap: Record<ClothingLayer, string[]> = {
-      tops: ['t-shirt', 'shirt', 'blouse', 'top', 'dress', 'tank', 'polo', 'turtleneck', 'tops'],
-      bottoms: ['pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings', 'bottoms'],
-      mid: ['sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt', 'innerwear'],
-      outer: ['jacket', 'coat', 'blazer', 'parka', 'outerwear', 'windbreaker'],
-      accessory: ['hat', 'scarf', 'belt', 'jewelry', 'bag', 'shoes', 'watch', 'accessory', 'socks', 'tie', 'accessories'],
-    };
+      tops: ['tops', 't-shirt', 'shirt', 'blouse', 'top', 'dress', 'tank', 'polo', 'turtleneck'],
+      bottoms: ['bottoms', 'pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings'],
+      mid: ['innerwear', 'sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt'],
+      outer: ['outerwear', 'jacket', 'coat', 'blazer', 'parka', 'windbreaker'],
+      accessory: ['accessories', 'shoes', 'hat', 'scarf', 'belt', 'jewelry', 'bag', 'watch', 'accessory', 'socks', 'tie', 'etc.'],
+};
 
     // Filter by layer
     let filteredItems = items.filter(item => {
@@ -222,11 +222,11 @@ export function WardrobeSidebar() {
       </div>
 
       <Tabs defaultValue="tops" className="h-[calc(100%-140px)]">
-        <TabsList className="w-full justify-start rounded-none border-b px-4">
+        <TabsList className="w-full justify-start rounded-none border-b px-2">
           {(Object.keys(LAYER_ICONS) as ClothingLayer[]).map((layer) => {
             const Icon = LAYER_ICONS[layer];
             return (
-              <TabsTrigger key={layer} value={layer} className="gap-2 text-xs">
+              <TabsTrigger key={layer} value={layer} className="gap-2 text-sm py-3 px-4 min-w-[80px]">
                 <Icon className="h-4 w-4" />
                 {LAYER_LABELS[layer]}
               </TabsTrigger>
