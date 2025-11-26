@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from .models import *
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 User = get_user_model()
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [ "username", "email", "first_name", "last_name"]
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,11 +16,22 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(username=data['email'], password=data['password'])
+        if user and user.is_active:
+            return user
+        else:
+            raise serializers.ValidationError("Login failed.")
     
 class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WardrobeItem
-        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name"]
+        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name", "user"]
 
 class OutfitItemSerializer(serializers.ModelSerializer):
     """

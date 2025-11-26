@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
 from .models import *
 from .serializers import *
@@ -17,6 +19,7 @@ class WardrobeItemsUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "pk"
 
 class RegisterViewset(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.AllowAny]
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
@@ -24,10 +27,48 @@ class RegisterViewset(viewsets.ViewSet):
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            return_data = {}
             user = serializer.save()
-            return Response(serializer.data)
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            return_data['access'] = str(access)
+            return_data['refresh'] = str(refresh)
+            return_data['user'] = self.serializer_class(user).data
+            return Response(return_data)
+        else:
+            return Response(serializer.errors, status=312)
+    def list(self, request):
+        users = self.queryset
+        serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
+
+class LoginViewset(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            return_data = {}
+            user = serializer.validated_data
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            return_data['access'] = str(access)
+            return_data['refresh'] = str(refresh)
+            return_data['user'] = UserSerializer(user).data
+            return Response(return_data)
         else:
             return Response(serializer.errors, status=400)
+
+class LogoutViewset(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    def create(self, request):
+        try:
+            existing_refresh = request.data["refresh"]
+            RefreshToken(existing_refresh).blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # Create your views here.
 def test(request):

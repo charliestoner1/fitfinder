@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 from django.utils import timezone
-# Create your models here.
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CustomUserManager(UserManager):
     def create_user(self, username, email, first_name, last_name, password, **extra_fields):
@@ -32,6 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
+    user_type = models.CharField(max_length=30, default='regular')
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -42,8 +45,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
     
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     
     class Meta:
         verbose_name = 'user'
@@ -149,3 +152,9 @@ class OutfitItem(models.Model):
         
     def __str__(self):
         return f"{self.clothing_item.name} in {self.outfit.name}"
+
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_auth_token(sender, instance=None, created=False, **kwargs):
+#     if created:
+#         Token.objects.create(user=instance)
+#         RefreshToken.objects.create(user=instance) 
