@@ -53,19 +53,43 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
 class WardrobeItem(models.Model):
-    CategoryType = models.TextChoices("Category", "Tops Bottoms Innerwear Outerwear Shoes Accessories Etc.")
-    SeasonType = models.TextChoices("Season", "Spring Summer Fall Winter None")
-    item_image = models.ImageField(blank=True, upload_to="wardrobe/items/images")
-    category = models.CharField(blank=True, choices=CategoryType, max_length=11)
-    season = models.CharField(blank=True, choices=SeasonType, max_length=10)
-    brand = models.CharField(blank=True, max_length = 30)
-    material = models.CharField(blank=True, max_length= 30)
-    price = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
-    name = models.CharField(blank=False, max_length = 30)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    def __str__(self):
-        return self.name 
+    class CategoryType(models.TextChoices):
+        TOPS = "Tops", "Tops"
+        BOTTOMS = "Bottoms", "Bottoms"
+        INNERWEAR = "Innerwear", "Innerwear"
+        OUTERWEAR = "Outerwear", "Outerwear"
+        SHOES = "Shoes", "Shoes"
+        ACCESSORIES = "Accessories", "Accessories"
+        ONE_PIECES = "One-Pieces", "One-Pieces"   
+        ETC = "Etc.", "Etc."
 
+    class SeasonType(models.TextChoices):
+        SPRING = "Spring", "Spring"
+        SUMMER = "Summer", "Summer"
+        FALL = "Fall", "Fall"
+        WINTER = "Winter", "Winter"
+        NONE = "None", "None"
+
+    item_image = models.ImageField(blank=True, upload_to="wardrobe/items/images")
+    category = models.CharField(
+        blank=True,
+        choices=CategoryType.choices,
+        max_length=11,   
+    )
+    season = models.CharField(
+        blank=True,
+        choices=SeasonType.choices,
+        max_length=10,
+    )
+    brand = models.CharField(blank=True, max_length=30)
+    material = models.CharField(blank=True, max_length=30)
+    price = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
+    name = models.CharField(blank=False, max_length=30)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    tags = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return self.name
 
 # outfit models
 
