@@ -1,20 +1,100 @@
 from django.shortcuts import render
-from rest_framework import generics, viewsets, permissions, status
+from rest_framework import generics, viewsets, permissions, status, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.http import JsonResponse
+from PIL import Image
+
 from .models import *
 from .serializers import *
+from .autotagger import (
+    run_autotagger,
+    infer_category_from_type_tags,
+    build_item_name_from_tags,
+)
+
 User = get_user_model()
 
 class WardrobeItems(generics.ListCreateAPIView):
     queryset = WardrobeItem.objects.all()
     serializer_class = WardrobeItemSerializer
+    def perform_create(self, serializer):
+        """
+        Save wardrobe item, then auto-tag the image and infer category if missing.
+        """
+        # 1) Save the instance first
+        instance = serializer.save()
+
+        # 2) If there is no image, nothing to tag
+        if not instance.item_image:
+            return
+
+        try:
+            # 3) Run the Florence-2 autotagger on the saved image file
+            tags, caption = run_autotagger(instance.item_image.path)
+        except Exception as e:
+            # Don't break uploads if the model errors out
+            print(f"[Autotagger] Error processing image {instance.pk}: {e}")
+            return
+
+        # 4) Store tags dict into the JSONField
+        #    (fallback to {} in case tags is None)
+        instance.tags = tags or {}
+
+        # 5) Infer category from type tags ONLY if user left category blank
+        if not instance.category:
+            type_tags = (tags or {}).get("type") or []
+            inferred_category = infer_category_from_type_tags(type_tags)
+            if inferred_category:
+                instance.category = inferred_category
+
+        instance.save()
 
 class WardrobeItemsUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = WardrobeItem.objects.all()
     serializer_class = WardrobeItemSerializer
     lookup_field = "pk"
+
+class AutoTagSuggestion(APIView):
+    """
+    Accepts an image file and returns suggested name, category, and raw tags,
+    without creating a WardrobeItem.
+    """
+
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    def post(self, request, *args, **kwargs):
+        file_obj = request.FILES.get("item_image") or request.FILES.get("image")
+        if not file_obj:
+            return Response(
+                {"detail": "No image file provided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            image = Image.open(file_obj).convert("RGB")
+            tags, caption = run_autotagger(image)
+            suggested_name = build_item_name_from_tags(tags, caption)
+            suggested_category = infer_category_from_type_tags(tags, caption)
+
+        except Exception as exc:
+            # Log for debugging, but keep response generic
+            print("[autotag-preview] error:", exc)
+            return Response(
+                {"detail": "Failed to generate auto tags."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {
+                "tags": tags,
+                "caption": caption,
+                "suggested_name": suggested_name,
+                "suggested_category": suggested_category,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 class RegisterViewset(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]

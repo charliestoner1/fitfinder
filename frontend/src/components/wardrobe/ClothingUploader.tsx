@@ -1,5 +1,6 @@
 // File: src/components/wardrobe/ClothingUploader.tsx
 // Updated to include required 'name' field for Django backend
+// and an "Auto tags loading..." message while suggestions are fetched
 
 'use client';
 
@@ -32,6 +33,7 @@ const CATEGORIES = [
   'Outerwear',
   'Shoes',
   'Accessories',
+  'One-pieces',
   'Etc.',
 ];
 
@@ -52,37 +54,66 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
   const [material, setMaterial] = useState('');
   const [price, setPrice] = useState('');
 
-  const handleFileSelect = useCallback((file: File) => {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file (JPEG, PNG, or WebP)');
-      return;
-    }
+  // Track whether the user has manually edited these fields
+  const [userEditedName, setUserEditedName] = useState(false);
+  const [userEditedCategory, setUserEditedCategory] = useState(false);
 
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
+  // Track auto-tag request
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
-    setSelectedFile(file);
-    
-    // Auto-fill name from filename if not set
-    if (!name) {
-      const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
-      setName(fileName);
-    }
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please select an image file (JPEG, PNG, or WebP)');
+        return;
+      }
 
-    toast.success('Image selected successfully');
-  }, [name]);
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      setSelectedFile(file);
+
+      // If user hasn't typed a name yet, default to filename first
+      if (!name.trim() && !userEditedName) {
+        const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+        setName(fileName);
+      }
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      toast.success('Image selected successfully');
+
+      // Ask backend for auto-tag suggestion
+      try {
+        setIsSuggesting(true);
+        const suggestion = await wardrobeService.getAutoTagSuggestion(file);
+
+        if (!userEditedName && suggestion.suggestedName) {
+          setName(suggestion.suggestedName);
+        }
+
+        if (!userEditedCategory && suggestion.suggestedCategory) {
+          setCategory(suggestion.suggestedCategory);
+        }
+      } catch (error: any) {
+        console.error('Auto-tag suggestion failed:', error?.response?.data || error?.message);
+        // Optional: toast.info('Could not auto-suggest name/category');
+      } finally {
+        setIsSuggesting(false);
+      }
+    },
+    [name, userEditedName, userEditedCategory]
+  );
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -271,11 +302,22 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
             <Label htmlFor="name" className="text-base font-semibold">
               Item Name *
             </Label>
+
+            {isSuggesting && (
+              <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Auto tags loading...
+              </p>
+            )}
+
             <Input
               id="name"
               placeholder="e.g., Blue Denim Jeans, Red T-Shirt"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setUserEditedName(true);
+              }}
               disabled={isUploading}
               required
               className="mt-2"
@@ -296,7 +338,14 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory} disabled={isUploading}>
+                <Select
+                  value={category}
+                  onValueChange={(value) => {
+                    setCategory(value);
+                    setUserEditedCategory(true);
+                  }}
+                  disabled={isUploading}
+                >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -312,7 +361,11 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
 
               <div>
                 <Label htmlFor="season">Season</Label>
-                <Select value={season} onValueChange={setSeason} disabled={isUploading}>
+                <Select
+                  value={season}
+                  onValueChange={setSeason}
+                  disabled={isUploading}
+                >
                   <SelectTrigger id="season">
                     <SelectValue placeholder="Select season" />
                   </SelectTrigger>
@@ -369,7 +422,9 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Uploading...</span>
-                <span className="font-medium text-indigo-600">{uploadProgress}%</span>
+                <span className="font-medium text-indigo-600">
+                  {uploadProgress}%
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div

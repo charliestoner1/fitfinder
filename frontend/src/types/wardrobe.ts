@@ -1,8 +1,4 @@
 // frontend/src/types/wardrobe.ts
-<<<<<<< HEAD
-// Updated to match Django backend model exactly
-=======
->>>>>>> main
 
 export interface ClothingItem {
   id: number;
@@ -16,7 +12,9 @@ export interface ClothingItem {
   price?: number;             // Django: price
   createdAt: string;          // Django: created_at
   updatedAt: string;          // Django: updated_at
+  tags?: ClothingTags;        // Django: tags 
 }
+
 
 export interface ClothingItemCreate {
   image: File;                // Will be sent as item_image
@@ -35,4 +33,17 @@ export interface ClothingItemUpdate {
   brand?: string;
   material?: string;
   price?: number;
+}
+
+export interface ClothingTags {
+  type?: string[];
+  color?: string[];
+  pattern?: string[];
+}
+
+export interface AutoTagSuggestion {
+  tags: ClothingTags;
+  caption?: string;
+  suggestedName: string;
+  suggestedCategory: string | null;
 }
