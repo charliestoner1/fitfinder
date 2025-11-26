@@ -104,7 +104,7 @@ function OutfitBuilderContent() {
       
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar - Wardrobe */}
-        <div className="w-96 border-r">
+        <div className="w-[550px] border-r overflow-y-auto">
           <WardrobeSidebar />
         </div>
 

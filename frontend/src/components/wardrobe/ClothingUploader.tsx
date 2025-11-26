@@ -1,14 +1,21 @@
 // File: src/components/wardrobe/ClothingUploader.tsx
-// Clothing upload component with drag-and-drop and form fields
+// Updated to include required 'name' field for Django backend
 
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { wardrobeService } from '@/lib/api/wardrobe';
 import { toast } from 'sonner';
 
@@ -17,13 +24,28 @@ interface ClothingUploaderProps {
   onCancel: () => void;
 }
 
+// Match Django model choices exactly
+const CATEGORIES = [
+  'Tops',
+  'Bottoms',
+  'Innerwear',
+  'Outerwear',
+  'Shoes',
+  'Accessories',
+  'Etc.',
+];
+
+const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter', 'None'];
+
 export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
-  // Form fields
+  // Form fields - name is REQUIRED by Django
+  const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [season, setSeason] = useState('');
   const [brand, setBrand] = useState('');
@@ -33,17 +55,24 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
   const handleFileSelect = useCallback((file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error('Please select an image file (JPEG, PNG, or WebP)');
       return;
     }
 
     // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
       toast.error('File size must be less than 5MB');
       return;
     }
 
     setSelectedFile(file);
+    
+    // Auto-fill name from filename if not set
+    if (!name) {
+      const fileName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+      setName(fileName);
+    }
     
     // Create preview
     const reader = new FileReader();
@@ -51,7 +80,9 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
       setPreviewUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
-  }, []);
+
+    toast.success('Image selected successfully');
+  }, [name]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -80,6 +111,12 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
     }
   };
 
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    toast.info('Image removed');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -88,11 +125,23 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
       return;
     }
 
+    if (!name.trim()) {
+      toast.error('Please enter a name for this item');
+      return;
+    }
+
     setIsUploading(true);
+    setUploadProgress(0);
+
+    // Simulate progress (since we don't have real progress tracking)
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => Math.min(prev + 10, 90));
+    }, 200);
 
     try {
       await wardrobeService.uploadItem({
         image: selectedFile,
+        name: name.trim(), // REQUIRED
         category: category || undefined,
         season: season || undefined,
         brand: brand || undefined,
@@ -100,20 +149,34 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
         price: price ? parseFloat(price) : undefined,
       });
 
-      onSuccess();
+      setUploadProgress(100);
+      clearInterval(progressInterval);
+      
+      toast.success('Item added to wardrobe!');
+      
+      // Small delay to show success before closing
+      setTimeout(() => {
+        onSuccess();
+      }, 500);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to upload item');
+      clearInterval(progressInterval);
+      const errorMessage = error.message || 'Failed to upload item';
+      toast.error(errorMessage);
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Add Clothing Item</CardTitle>
+          <div>
+            <CardTitle>Add Clothing Item</CardTitle>
+            <CardDescription>Upload a photo and name your clothing item</CardDescription>
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -128,7 +191,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload */}
           <div>
-            <Label>Photo</Label>
+            <Label className="text-base font-semibold">Photo *</Label>
             {!previewUrl ? (
               <div
                 onDrop={handleDrop}
@@ -136,119 +199,189 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
                 onDragLeave={handleDragLeave}
                 className={`
                   mt-2 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-                  transition-colors
+                  transition-all duration-200
                   ${isDragging 
-                    ? 'border-indigo-500 bg-indigo-50' 
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-indigo-500 bg-indigo-50 scale-[1.02]' 
+                    : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'
                   }
                 `}
               >
-                <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <div className="text-sm text-gray-600 mb-2">
-                  Drag and drop your image here, or
-                </div>
-                <label className="cursor-pointer">
-                  <span className="text-indigo-600 hover:text-indigo-700 font-medium">
-                    browse files
-                  </span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleInputChange}
-                    disabled={isUploading}
-                  />
-                </label>
-                <div className="text-xs text-gray-500 mt-2">
-                  PNG, JPG, WEBP up to 5MB
+                <div className="flex flex-col items-center">
+                  <div className={`
+                    p-4 rounded-full mb-4 transition-colors
+                    ${isDragging ? 'bg-indigo-100' : 'bg-gray-100'}
+                  `}>
+                    <Upload className={`w-8 h-8 ${isDragging ? 'text-indigo-600' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="text-base text-gray-700 mb-2 font-medium">
+                    {isDragging ? 'Drop your image here' : 'Drag and drop your image'}
+                  </div>
+                  <div className="text-sm text-gray-500 mb-4">or</div>
+                  <label className="cursor-pointer">
+                    <span className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      Browse Files
+                    </span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleInputChange}
+                      disabled={isUploading}
+                    />
+                  </label>
+                  <div className="text-xs text-gray-500 mt-4">
+                    Supported: PNG, JPG, WEBP (max 5MB)
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="mt-2 relative">
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="absolute top-2 right-2"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreviewUrl(null);
-                  }}
-                  disabled={isUploading}
-                >
-                  Remove
-                </Button>
+              <div className="mt-2 relative group">
+                <div className="relative rounded-lg border-2 border-gray-200 bg-gray-50 flex items-center justify-center p-4 min-h-[200px]">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="max-h-96 w-auto object-contain"
+                  />
+                </div>
+                {!isUploading && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-3 right-3 shadow-lg z-10"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Remove
+                  </Button>
+                )}
+                {selectedFile && (
+                  <div className="mt-2 text-sm text-gray-600 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-green-600" />
+                    {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                  </div>
+                )}
               </div>
             )}
           </div>
 
+          {/* REQUIRED: Item Name */}
+          <div>
+            <Label htmlFor="name" className="text-base font-semibold">
+              Item Name *
+            </Label>
+            <Input
+              id="name"
+              placeholder="e.g., Blue Denim Jeans, Red T-Shirt"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={isUploading}
+              required
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Give your item a descriptive name
+            </p>
+          </div>
+
           {/* Optional Details */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="category">Category (Optional)</Label>
-              <Input
-                id="category"
-                placeholder="e.g., Shirt, Pants"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                disabled={isUploading}
-              />
+          <div className="space-y-4">
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                Additional Details (Optional)
+              </h3>
             </div>
 
-            <div>
-              <Label htmlFor="season">Season (Optional)</Label>
-              <Input
-                id="season"
-                placeholder="e.g., Summer, Winter"
-                value={season}
-                onChange={(e) => setSeason(e.target.value)}
-                disabled={isUploading}
-              />
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select value={category} onValueChange={setCategory} disabled={isUploading}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <Label htmlFor="brand">Brand (Optional)</Label>
-              <Input
-                id="brand"
-                placeholder="e.g., Nike, Zara"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                disabled={isUploading}
-              />
-            </div>
+              <div>
+                <Label htmlFor="season">Season</Label>
+                <Select value={season} onValueChange={setSeason} disabled={isUploading}>
+                  <SelectTrigger id="season">
+                    <SelectValue placeholder="Select season" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEASONS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <Label htmlFor="material">Material (Optional)</Label>
-              <Input
-                id="material"
-                placeholder="e.g., Cotton, Denim"
-                value={material}
-                onChange={(e) => setMaterial(e.target.value)}
-                disabled={isUploading}
-              />
-            </div>
+              <div>
+                <Label htmlFor="brand">Brand</Label>
+                <Input
+                  id="brand"
+                  placeholder="e.g., Nike, Zara"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  disabled={isUploading}
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="price">Price (Optional)</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                disabled={isUploading}
-              />
+              <div>
+                <Label htmlFor="material">Material</Label>
+                <Input
+                  id="material"
+                  placeholder="e.g., Cotton, Denim"
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="price">Price (USD)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  disabled={isUploading}
+                />
+              </div>
             </div>
           </div>
 
+          {/* Upload Progress */}
+          {isUploading && uploadProgress > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Uploading...</span>
+                <span className="font-medium text-indigo-600">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-indigo-600 h-full transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-3 justify-end pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -257,14 +390,21 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isUploading || !selectedFile}>
+            <Button 
+              type="submit" 
+              disabled={isUploading || !selectedFile || !name.trim()}
+              className="min-w-[140px]"
+            >
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Uploading...
                 </>
               ) : (
-                'Add to Wardrobe'
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Add to Wardrobe
+                </>
               )}
             </Button>
           </div>

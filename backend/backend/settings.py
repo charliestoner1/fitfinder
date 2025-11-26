@@ -154,3 +154,7 @@ SIMPLE_JWT = {
 AUTHENTICATION_BACKENDS = {
     "django.contrib.auth.backends.ModelBackend",
 }
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR
