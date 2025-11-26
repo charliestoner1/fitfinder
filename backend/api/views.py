@@ -12,6 +12,15 @@ User = get_user_model()
 class WardrobeItems(generics.ListCreateAPIView):
     queryset = WardrobeItem.objects.all()
     serializer_class = WardrobeItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_anonymous:
+            return WardrobeItem.objects.filter(user = user)
+        else:
+            return WardrobeItem.objects.none()
+
 
 class WardrobeItemsUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = WardrobeItem.objects.all()
