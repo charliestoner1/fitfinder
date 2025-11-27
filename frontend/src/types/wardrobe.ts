@@ -1,8 +1,5 @@
 // frontend/src/types/wardrobe.ts
-<<<<<<< HEAD
 // Updated to match Django backend model exactly
-=======
->>>>>>> main
 
 export interface ClothingItem {
   id: number;

@@ -127,10 +127,10 @@ export function WardrobeSidebar() {
         const transformedItems: ClothingItem[] = response.data.map(item => ({
           id: item.id.toString(), // Convert number to string for frontend
           imageUrl: item.item_image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image',
-          category: item.name || item.category || 'Uncategorized',
+          category: item.category || 'Uncategorized',
           colors: ['#CCCCCC'], // Default color - can be enhanced with ML tagging later
-          season: item.season,
-          brand: item.brand,
+          season: item.season || 'None',
+          brand: item.brand || 'None',
         }));
         
         console.log('Loaded wardrobe items:', transformedItems);
