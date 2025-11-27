@@ -5,7 +5,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [ "username", "email", "first_name", "last_name"]
+        fields = [ "username", "email", "first_name", "last_name", "id"]
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,6 +32,7 @@ class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WardrobeItem
         fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name", "user"]
+        extra_kwargs = {"user": {"read_only": True}}
 
 class OutfitItemSerializer(serializers.ModelSerializer):
     """

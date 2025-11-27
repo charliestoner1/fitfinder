@@ -20,6 +20,17 @@ class WardrobeItems(generics.ListCreateAPIView):
             return WardrobeItem.objects.filter(user = user)
         else:
             return WardrobeItem.objects.none()
+        
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ViewAllWardrobeItems(generics.ListCreateAPIView):
+    queryset = WardrobeItem.objects.all()
+    serializer_class = WardrobeItemSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return WardrobeItem.objects.all()
 
 
 class WardrobeItemsUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
@@ -69,6 +80,19 @@ class LoginViewset(viewsets.ViewSet):
         else:
             return Response(serializer.errors, status=400)
 
+class GetCurrentUser(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    def get(self, request):
+        print(self.request.user)
+        if self.request.user.is_authenticated:
+            user = UserSerializer(self.request.user).data
+            print("Current user data:", user)
+            return Response(user)
+        else:
+            return Response(User.objects.none())
+        
+
 class LogoutViewset(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     def create(self, request):
@@ -78,11 +102,6 @@ class LogoutViewset(viewsets.ViewSet):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-# Create your views here.
-def test(request):
-    message = "Hello from Fitfinder :)"
-    return JsonResponse(message, safe=False)
 
 class OutfitViewSet(viewsets.ModelViewSet):
     """
@@ -179,23 +198,3 @@ class OutfitViewSet(viewsets.ModelViewSet):
         return Response({
             'preview_image_url': serializer.data['preview_image_url']
         })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    

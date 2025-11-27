@@ -65,7 +65,7 @@ class WardrobeItem(models.Model):
     material = models.CharField(blank=True, max_length= 30)
     price = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
     name = models.CharField(blank=False, max_length = 30)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     def __str__(self):
         return self.name 
 
