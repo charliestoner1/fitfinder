@@ -1,0 +1,14 @@
+# --- Core web backend ---
+Django>=5.0,<6.0
+djangorestframework>=3.15.0
+django-cors-headers>=4.3.0
+python-dotenv>=1.0.0
+
+# --- Image handling ---
+Pillow>=10.0.0
+
+# --- Auto-tagger (Florence-2 + Hugging Face stack) ---
+# These will be used once we integrate the autotagger into the backend.
+torch>=2.3.0
+transformers==4.49.0
+huggingface-hub>=0.25.0
