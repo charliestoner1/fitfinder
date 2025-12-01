@@ -13,6 +13,7 @@ import { Shirt, ShoppingBag, Layers, Layers2, Watch, Search, Loader2 } from 'luc
 import  apiClient  from '@/lib/api/client';
 import { toast } from 'sonner';
 
+
 interface WardrobeItemCardProps {
   item: ClothingItem;
   layer: ClothingLayer;

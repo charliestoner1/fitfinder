@@ -160,21 +160,3 @@ class OutfitCreateUpdateSerializer(serializers.ModelSerializer):
                 )
         
         return instance
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

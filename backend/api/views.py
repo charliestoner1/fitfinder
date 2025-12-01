@@ -97,10 +97,12 @@ class LogoutViewset(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     def create(self, request):
         try:
-            existing_refresh = request.data["refresh"]
-            RefreshToken(existing_refresh).blacklist()
+            existing_refresh = RefreshToken(request.data.get("refresh"))
+            existing_access = AccessToken(request.data.get("access"))
+            existing_refresh.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
+            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class OutfitViewSet(viewsets.ModelViewSet):
