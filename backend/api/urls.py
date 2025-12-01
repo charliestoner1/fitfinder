@@ -7,11 +7,13 @@ from .views import (
     WardrobeItemsUpdateDelete,
     RegisterViewset,
     OutfitViewSet,
+    AutoTagSuggestion,  
     LoginViewset,
     LogoutViewset,
     ViewAllWardrobeItems,
     GetCurrentUser,
 )
+
 
 router = DefaultRouter()
 router.register('auth/register', RegisterViewset, basename='register')
@@ -22,6 +24,7 @@ router.register('outfits', OutfitViewSet, basename='outfit')
 urlpatterns = [
     path("", include(router.urls)),
     path("wardrobe/items/", WardrobeItems.as_view(), name="wardrobe"),
+    path("wardrobe/autotag-preview/", AutoTagSuggestion.as_view(), name="wardrobe-autotag-preview"),
     path("wardrobe/items/<int:pk>/", WardrobeItemsUpdateDelete.as_view(), name="delete"),
     path("wardrobe/items/all", ViewAllWardrobeItems.as_view(), name="get_all"),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

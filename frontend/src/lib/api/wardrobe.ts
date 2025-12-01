@@ -1,7 +1,7 @@
 // frontend/src/lib/api/wardrobe.ts
 import api from './client';
 import { authService } from './auth'
-import { ClothingItem, ClothingItemCreate, ClothingItemUpdate } from '@/types/wardrobe';
+import { ClothingItem, ClothingItemCreate, ClothingItemUpdate, AutoTagSuggestion } from '@/types/wardrobe';
 import { keysToCamelCase } from '@/lib/utils/case-transformer';
 
 export const wardrobeService = {
@@ -29,6 +29,38 @@ export const wardrobeService = {
       return keysToCamelCase<ClothingItem>(response.data);
     } catch (error: any) {
       console.error(`❌ Error fetching wardrobe item ${id}:`, error.response?.data || error.message);
+      throw error;
+    }
+  },
+  async getAutoTagSuggestion(image: File): Promise<AutoTagSuggestion> {
+    try {
+      console.log('🧠 Requesting auto-tag suggestion for image:', image.name);
+
+      const formData = new FormData();
+      formData.append('item_image', image);
+
+      const response = await api.post('/wardrobe/autotag-preview/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const data = response.data;
+
+      const suggestion: AutoTagSuggestion = {
+        tags: data.tags ?? {},
+        caption: data.caption ?? undefined,
+        suggestedName: data.suggested_name,
+        suggestedCategory: data.suggested_category,
+      };
+
+      console.log('✅ Auto-tag suggestion:', suggestion);
+      return suggestion;
+    } catch (error: any) {
+      console.error(
+        '❌ Error getting auto-tag suggestion:',
+        error.response?.data || error.message
+      );
       throw error;
     }
   },

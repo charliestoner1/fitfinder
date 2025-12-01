@@ -31,7 +31,7 @@ class LoginSerializer(serializers.Serializer):
 class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WardrobeItem
-        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name", "user"]
+        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name", "tags", "user"]
         extra_kwargs = {"user": {"read_only": True}}
 
 class OutfitItemSerializer(serializers.ModelSerializer):
