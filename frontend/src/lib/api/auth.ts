@@ -1,5 +1,6 @@
 import api from './client';
 import { AuthResponse, LoginCredentials, RegisterData, User } from '../../types/auth';
+import { access } from 'fs';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -28,7 +29,15 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      await api.post('/auth/logout/');
+      const refresh = localStorage.getItem('refresh_token');
+      const access = localStorage.getItem('access_token');
+      if(refresh && access){
+          await api.post('/auth/logout/', {
+          refresh: refresh,
+          access: access,
+        });
+      }
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

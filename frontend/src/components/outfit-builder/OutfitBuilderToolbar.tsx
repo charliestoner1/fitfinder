@@ -31,6 +31,9 @@ import { Save, Trash2, Download, Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { createOutfit, updateOutfit } from '@/lib/api/outfits';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { authService } from '@/lib/api/auth';
+
 
 const OCCASIONS = [
   'casual',
@@ -51,6 +54,9 @@ const SEASONS = [
   'all',
 ] as const;
 
+
+
+
 export function OutfitBuilderToolbar() {
   const searchParams = useSearchParams();
   const editOutfitId = searchParams?.get('edit');
@@ -65,6 +71,17 @@ export function OutfitBuilderToolbar() {
   const currentOutfit = useOutfitBuilderStore((state) => state.currentOutfit);
   const clearCanvas = useOutfitBuilderStore((state) => state.clearCanvas);
 
+  const router = useRouter();
+    const logoutHandler = async () => {
+      try{
+        await authService.logout();
+        router.push('/register');
+      }
+      catch(error: any){
+        console.error('Logout failed', error);
+      }
+    }
+  
   // Pre-fill form when editing
   const handleDialogOpen = (open: boolean) => {
     if (open && isEditMode) {
@@ -191,7 +208,6 @@ export function OutfitBuilderToolbar() {
           <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
-
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" disabled={currentOutfit.items.length === 0}>
@@ -281,6 +297,13 @@ export function OutfitBuilderToolbar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <Button
+            onClick={logoutHandler}
+            size="default"
+            className="bg-red-600 shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
+          >
+            Log Out
+          </Button>
       </div>
     </div>
   );

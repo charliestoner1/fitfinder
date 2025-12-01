@@ -3,6 +3,8 @@ from rest_framework import generics, viewsets, permissions, status, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.http import JsonResponse
 from PIL import Image
 
@@ -50,6 +52,26 @@ class WardrobeItems(generics.ListCreateAPIView):
                 instance.category = inferred_category
 
         instance.save()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_anonymous:
+            return WardrobeItem.objects.filter(user = user)
+        else:
+            return WardrobeItem.objects.none()
+        
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ViewAllWardrobeItems(generics.ListCreateAPIView):
+    queryset = WardrobeItem.objects.all()
+    serializer_class = WardrobeItemSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return WardrobeItem.objects.all()
+
 
 class WardrobeItemsUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = WardrobeItem.objects.all()
@@ -97,6 +119,7 @@ class AutoTagSuggestion(APIView):
         )
 
 class RegisterViewset(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.AllowAny]
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
@@ -104,15 +127,63 @@ class RegisterViewset(viewsets.ViewSet):
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            return_data = {}
             user = serializer.save()
-            return Response(serializer.data)
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            return_data['access'] = str(access)
+            return_data['refresh'] = str(refresh)
+            return_data['user'] = self.serializer_class(user).data
+            return Response(return_data)
+        else:
+            return Response(serializer.errors, status=312)
+    def list(self, request):
+        users = self.queryset
+        serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
+
+class LoginViewset(viewsets.ViewSet):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = LoginSerializer
+
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            return_data = {}
+            user = serializer.validated_data
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+            return_data['access'] = str(access)
+            return_data['refresh'] = str(refresh)
+            return_data['user'] = UserSerializer(user).data
+            return Response(return_data)
         else:
             return Response(serializer.errors, status=400)
 
-# Create your views here.
-def test(request):
-    message = "Hello from Fitfinder :)"
-    return JsonResponse(message, safe=False)
+class GetCurrentUser(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    def get(self, request):
+        print(self.request.user)
+        if self.request.user.is_authenticated:
+            user = UserSerializer(self.request.user).data
+            print("Current user data:", user)
+            return Response(user)
+        else:
+            return Response(User.objects.none())
+        
+
+class LogoutViewset(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    def create(self, request):
+        try:
+            existing_refresh = RefreshToken(request.data.get("refresh"))
+            existing_access = AccessToken(request.data.get("access"))
+            existing_refresh.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class OutfitViewSet(viewsets.ModelViewSet):
     """
@@ -209,23 +280,3 @@ class OutfitViewSet(viewsets.ModelViewSet):
         return Response({
             'preview_image_url': serializer.data['preview_image_url']
         })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    

@@ -36,7 +36,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refresh_token');
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/token/refresh/`,
           { refresh: refreshToken }
         );
 
@@ -48,7 +48,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/auth/login';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

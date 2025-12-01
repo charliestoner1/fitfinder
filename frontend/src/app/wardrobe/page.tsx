@@ -7,11 +7,14 @@ import { useState, useEffect } from 'react';
 import { Plus, Upload, Search, Filter, Loader2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { authService } from '@/lib/api/auth';
 import { ClothingUploader } from '@/components/wardrobe/ClothingUploader';
 import { WardrobeGrid } from '@/components/wardrobe/WardrobeGrid';
 import { wardrobeService } from '@/lib/api/wardrobe';
 import { ClothingItem } from '@/types/wardrobe';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+
 
 export default function WardrobePage() {
   const [items, setItems] = useState<ClothingItem[]>([]);
@@ -19,6 +22,17 @@ export default function WardrobePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const router = useRouter();
+  const logoutHandler = async () => {
+    try{
+      await authService.logout();
+      router.push('/register');
+    }
+    catch(error: any){
+      console.error('Logout failed', error);
+    }
+  }
 
   useEffect(() => {
     loadWardrobeItems();
@@ -142,7 +156,8 @@ export default function WardrobePage() {
                 )}
               </p>
             </div>
-            <Button
+            <div className = "flex  sm:items-center sm:justify-between gap-3"> 
+              <Button
               onClick={handleOpenUploader}
               size="lg"
               className="shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
@@ -150,6 +165,15 @@ export default function WardrobePage() {
               <Plus className="w-5 h-5 mr-2" />
               Add Clothing
             </Button>
+
+            <Button
+              onClick={logoutHandler}
+              size="default"
+              className="bg-red-600 shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
+            >
+              Log Out
+            </Button>
+            </div>
           </div>
         </div>
 

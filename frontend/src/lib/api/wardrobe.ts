@@ -1,5 +1,6 @@
 // frontend/src/lib/api/wardrobe.ts
 import api from './client';
+import { authService } from './auth'
 import { ClothingItem, ClothingItemCreate, ClothingItemUpdate, AutoTagSuggestion } from '@/types/wardrobe';
 import { keysToCamelCase } from '@/lib/utils/case-transformer';
 
@@ -80,7 +81,7 @@ export const wardrobeService = {
       
       // REQUIRED FIELDS
       formData.append('item_image', data.image); // Django expects 'item_image', not 'image'
-      formData.append('name', data.name || 'Untitled Item'); // Required by Django model
+      formData.append('name', data.name || 'Untitled Item'); // Required by Django model  
       
       // OPTIONAL FIELDS
       if (data.category) formData.append('category', data.category);
