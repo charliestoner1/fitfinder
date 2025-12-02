@@ -5,3 +5,4 @@ from .models import *
 admin.site.register(WardrobeItem)
 admin.site.register(User)
 admin.site.register(Outfit)
+admin.site.register(Recommendation)

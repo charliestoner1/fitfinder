@@ -12,6 +12,7 @@ from .views import (
     LogoutViewset,
     ViewAllWardrobeItems,
     GetCurrentUser,
+    RecommendationViewSet,
 )
 
 
@@ -20,6 +21,7 @@ router.register('auth/register', RegisterViewset, basename='register')
 router.register('auth/login', LoginViewset, basename='login')
 router.register('auth/logout', LogoutViewset, basename='logout')
 router.register('outfits', OutfitViewSet, basename='outfit')
+router.register('recommendations', RecommendationViewSet, basename='recommendation')
 
 urlpatterns = [
     path("", include(router.urls)),

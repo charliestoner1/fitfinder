@@ -22,11 +22,19 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        user = authenticate(username=data['email'], password=data['password'])
-        if user and user.is_active:
-            return user
-        else:
-            raise serializers.ValidationError("Login failed.")
+        # Try to find user by email first
+        email = data.get('email')
+        password = data.get('password')
+        
+        try:
+            user = User.objects.get(email=email)
+            # Verify password
+            if user.check_password(password) and user.is_active:
+                return user
+            else:
+                raise serializers.ValidationError("Invalid email or password.")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password.")
     
 class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,6 +81,8 @@ class OutfitSerializer(serializers.ModelSerializer):
             'occasion',
             'season',
             'preview_image_url',
+            'is_favorite',
+            'scheduled_date',
             'created_at',
             'updated_at',
             'likes',
@@ -100,7 +110,7 @@ class OutfitCreateUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Outfit
-        fields = ['name', 'occasion', 'season', 'items', 'tags']
+        fields = ['name', 'occasion', 'season', 'is_favorite', 'scheduled_date', 'items', 'tags']
     
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -160,3 +170,49 @@ class OutfitCreateUpdateSerializer(serializers.ModelSerializer):
                 )
         
         return instance
+
+class RecommendationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for outfit recommendations with nested item data
+    """
+    recommended_items = WardrobeItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Recommendation
+        fields = [
+            'id',
+            'weather',
+            'occasion',
+            'temperature',
+            'recommended_items',
+            'compatibility_score',
+            'explanation',
+            'created_at',
+        ]
+        read_only_fields = ['created_at', 'compatibility_score', 'explanation', 'recommended_items']
+
+
+class RecommendationRequestSerializer(serializers.Serializer):
+    """
+    Serializer for generating new recommendations
+    """
+    weather = serializers.ChoiceField(choices=[
+        ('sunny', 'Sunny'),
+        ('cloudy', 'Cloudy'),
+        ('rainy', 'Rainy'),
+        ('snowy', 'Snowy'),
+        ('hot', 'Hot'),
+        ('cold', 'Cold'),
+    ])
+    occasion = serializers.ChoiceField(choices=[
+        ('casual', 'Casual'),
+        ('professional', 'Professional'),
+        ('formal', 'Formal'),
+        ('party', 'Party'),
+        ('date', 'Date'),
+        ('gym', 'Gym'),
+        ('outdoor', 'Outdoor'),
+        ('beach', 'Beach'),
+    ])
+    temperature = serializers.IntegerField(required=False, allow_null=True)
+

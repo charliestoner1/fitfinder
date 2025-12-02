@@ -5,15 +5,14 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Upload, Search, Filter, Loader2, Package } from 'lucide-react';
+import { Navbar } from '@/components/navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { authService } from '@/lib/api/auth';
 import { ClothingUploader } from '@/components/wardrobe/ClothingUploader';
-import { WardrobeGrid } from '@/components/wardrobe/WardrobeGrid';
+import { WardrobeCategoryGrid } from '@/components/wardrobe/WardrobeCategoryGrid';
 import { wardrobeService } from '@/lib/api/wardrobe';
 import { ClothingItem } from '@/types/wardrobe';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
 
 
 export default function WardrobePage() {
@@ -22,17 +21,6 @@ export default function WardrobePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const router = useRouter();
-  const logoutHandler = async () => {
-    try{
-      await authService.logout();
-      router.push('/register');
-    }
-    catch(error: any){
-      console.error('Logout failed', error);
-    }
-  }
 
   useEffect(() => {
     loadWardrobeItems();
@@ -106,51 +94,44 @@ export default function WardrobePage() {
   // Empty state when no items
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="bg-gray-100 rounded-full p-6 mb-6">
-        <Package className="w-16 h-16 text-gray-400" />
+      <div className="p-6 mb-6" style={{ backgroundColor: '#fce4ec' }}>
+        <Package className="w-16 h-16" style={{ color: '#FFAEDA' }} />
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <h2 className="text-2xl font-bold mb-2" style={{ color: '#FFAEDA' }}>
         Your wardrobe is empty
       </h2>
-      <p className="text-gray-600 text-center mb-8 max-w-md">
-        Start building your digital wardrobe by adding your first clothing item. 
+      <p className="text-slate-600 text-center max-w-md">
+        Start building your digital wardrobe by uploading your first clothing item. 
         Upload a photo and let our AI help organize it!
       </p>
-      <Button 
-        onClick={handleOpenUploader}
-        size="lg"
-        className="shadow-lg hover:shadow-xl transition-shadow"
-      >
-        <Upload className="w-5 h-5 mr-2" />
-        Add Your First Item
-      </Button>
     </div>
   );
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading your wardrobe...</p>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: '#86B4FA' }} />
+          <p className="text-slate-600 text-lg">Loading your wardrobe...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Wardrobe</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold" style={{ color: '#FFAEDA' }}>My Wardrobe</h1>
+              <p className="text-slate-600 mt-1">
                 {items.length} {items.length === 1 ? 'item' : 'items'} in your collection
                 {searchQuery && filteredItems.length !== items.length && (
-                  <span className="ml-2 text-indigo-600">
+                  <span className="ml-2" style={{ color: '#86B4FA' }}>
                     ({filteredItems.length} {filteredItems.length === 1 ? 'match' : 'matches'})
                   </span>
                 )}
@@ -164,14 +145,6 @@ export default function WardrobePage() {
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Clothing
-            </Button>
-
-            <Button
-              onClick={logoutHandler}
-              size="default"
-              className="bg-red-600 shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
-            >
-              Log Out
             </Button>
             </div>
           </div>
@@ -228,7 +201,7 @@ export default function WardrobePage() {
           </div>
         ) : (
           <div className="animate-in fade-in duration-300">
-            <WardrobeGrid items={filteredItems} onDelete={handleDeleteItem} />
+            <WardrobeCategoryGrid items={filteredItems} onDelete={handleDeleteItem} />
           </div>
         )}
 

@@ -29,12 +29,10 @@ interface ClothingUploaderProps {
 const CATEGORIES = [
   'Tops',
   'Bottoms',
-  'Innerwear',
-  'Outerwear',
-  'Shoes',
-  'Accessories',
-  'One-pieces',
-  'Etc.',
+  'Mid Layer',
+  'Outer Layer',
+  'Accessory',
+  'Other',
 ];
 
 const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter', 'None'];

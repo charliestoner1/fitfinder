@@ -34,7 +34,7 @@ export function LoginForm() {
         description: 'You have been logged in successfully.',
       });
 
-      router.push('/wardrobe');
+      router.push('/');
     } catch (error: any) {
       toast.error('Error', {
         description: error.response?.data?.message || 'Invalid email or password',
