@@ -164,11 +164,11 @@ function UnauthenticatedLanding() {
         </section>
 
         {/* How It Works */}
-        <section className="mb-20 bg-white rounded-lg shadow-lg p-8 md:p-12 animate-slide-up">
+        <section className="mb-20 bg-white rounded-lg shadow-lg p-8 md:p-12 animate-slide-up overflow-hidden">
           <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center animate-slide-down">
             How It Works
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
                 step: 1,
@@ -178,8 +178,7 @@ function UnauthenticatedLanding() {
               {
                 step: 2,
                 title: "AI Tags Items",
-                description:
-                  "Our AI automatically categorizes and tags your clothes",
+                description: "Our AI automatically categorizes and tags your clothes",
               },
               {
                 step: 3,
@@ -204,7 +203,7 @@ function UnauthenticatedLanding() {
             ))}
           </div>
         </section>
-
+       
         {/* CTA Section - Luxe Fashion */}
         <section className="rounded-none shadow-2xl p-12 md:p-16 text-center mb-24 animate-slide-up hover:animate-glow" style={{ background: 'linear-gradient(135deg, #FFAEDA 0%, #C8B4FF 100%)' }}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 uppercase tracking-wider animate-bounce-pop">
@@ -259,27 +258,6 @@ function AuthenticatedHome() {
             Your AI-powered personal styling assistant for smart wardrobe management
             and outfit recommendations
           </p>
-        </div>
-
-        {/* About Us Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-pink-200/30 transition-all duration-400 hover:bg-white/60 hover:border-pink-300/50 hover:shadow-xl animate-slide-left hover:animate-glow">
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#DB4E8F' }}>Front-end Lead</h3>
-            <p className="text-slate-700 font-semibold hover:text-pink-600 transition-colors">Charlie Stoner</p>
-            <p className="text-slate-700 font-semibold hover:text-pink-600 transition-colors">Thai-Son Nguyen</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-blue-200/30 transition-all duration-400 hover:bg-white/60 hover:border-blue-300/50 hover:shadow-xl animate-slide-right hover:animate-glow">
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#86B4FA' }}>Back-end Lead</h3>
-            <p className="text-slate-700 font-semibold hover:text-blue-600 transition-colors">Thai-Son Nguyen</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-green-200/30 transition-all duration-400 hover:bg-white/60 hover:border-green-300/50 hover:shadow-xl animate-slide-left hover:animate-glow" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#99F1B9' }}>Dev-ops & QA</h3>
-            <p className="text-slate-700 font-semibold hover:text-green-600 transition-colors">Nam Tran</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-purple-200/30 transition-all duration-400 hover:bg-white/60 hover:border-purple-300/50 hover:shadow-xl animate-slide-right hover:animate-glow" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#C8B4FF' }}>ML Engineer</h3>
-            <p className="text-slate-700 font-semibold hover:text-purple-600 transition-colors">Emear Kilic</p>
-          </div>
         </div>
 
         {/* Features Grid - Fashionable */}
