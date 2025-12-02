@@ -83,7 +83,7 @@ class AutoTagSuggestion(APIView):
     Accepts an image file and returns suggested name, category, and raw tags,
     without creating a WardrobeItem.
     """
-
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
     def post(self, request, *args, **kwargs):
@@ -125,10 +125,12 @@ class RegisterViewset(viewsets.ViewSet):
     serializer_class = RegisterSerializer
 
     def create(self, request):
+        print(f"[DEBUG] Registration request data: {request.data}")
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             return_data = {}
             user = serializer.save()
+            print(f"[DEBUG] User created: {user.email}, password hash: {user.password}")
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
             return_data['access'] = str(access)
@@ -136,7 +138,8 @@ class RegisterViewset(viewsets.ViewSet):
             return_data['user'] = self.serializer_class(user).data
             return Response(return_data)
         else:
-            return Response(serializer.errors, status=312)
+            print(f"[DEBUG] Serializer errors: {serializer.errors}")
+            return Response(serializer.errors, status=400)
     def list(self, request):
         users = self.queryset
         serializer = self.serializer_class(users, many=True)
@@ -147,10 +150,12 @@ class LoginViewset(viewsets.ViewSet):
     serializer_class = LoginSerializer
 
     def create(self, request):
+        print(f"[DEBUG] Login request data: {request.data}")
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             return_data = {}
             user = serializer.validated_data
+            print(f"[DEBUG] Login successful for user: {user.email}")
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
             return_data['access'] = str(access)
@@ -158,6 +163,7 @@ class LoginViewset(viewsets.ViewSet):
             return_data['user'] = UserSerializer(user).data
             return Response(return_data)
         else:
+            print(f"[DEBUG] Login failed with errors: {serializer.errors}")
             return Response(serializer.errors, status=400)
 
 class GetCurrentUser(generics.GenericAPIView):
@@ -258,6 +264,84 @@ class OutfitViewSet(viewsets.ModelViewSet):
         return Response(output_serializer.data)
     
     @action(detail=True, methods=['post'])
+    def toggle_favorite(self, request, pk=None):
+        """
+        Toggle outfit as favorite
+        POST /api/outfits/{id}/toggle-favorite/
+        """
+        outfit = self.get_object()
+        outfit.is_favorite = not outfit.is_favorite
+        outfit.save()
+        
+        serializer = OutfitSerializer(outfit, context={'request': request})
+        return Response({
+            'is_favorite': outfit.is_favorite,
+            'outfit': serializer.data
+        })
+    
+    @action(detail=True, methods=['post'])
+    def schedule(self, request, pk=None):
+        """
+        Schedule outfit for a specific date
+        POST /api/outfits/{id}/schedule/
+        
+        Expected JSON:
+        {
+            "scheduled_date": "2025-12-25T10:00:00Z"  // ISO format datetime
+        }
+        """
+        outfit = self.get_object()
+        scheduled_date = request.data.get('scheduled_date')
+        
+        if not scheduled_date:
+            return Response(
+                {'error': 'scheduled_date is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from datetime import datetime
+            # Parse ISO format datetime
+            outfit.scheduled_date = scheduled_date
+            outfit.save()
+        except Exception as e:
+            return Response(
+                {'error': f'Invalid datetime format: {str(e)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = OutfitSerializer(outfit, context={'request': request})
+        return Response({
+            'scheduled_date': outfit.scheduled_date,
+            'outfit': serializer.data
+        })
+    
+    @action(detail=False, methods=['get'])
+    def scheduled(self, request):
+        """
+        Get all scheduled outfits for the current user
+        GET /api/outfits/scheduled/
+        """
+        from django.utils import timezone
+        outfits = self.get_queryset().filter(
+            scheduled_date__isnull=False,
+            scheduled_date__gte=timezone.now()
+        ).order_by('scheduled_date')
+        
+        serializer = OutfitSerializer(outfits, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def favorites(self, request):
+        """
+        Get all favorite outfits for the current user
+        GET /api/outfits/favorites/
+        """
+        outfits = self.get_queryset().filter(is_favorite=True).order_by('-updated_at')
+        serializer = OutfitSerializer(outfits, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
     def upload_preview(self, request, pk=None):
         """
         Upload a preview image for an outfit
@@ -280,3 +364,66 @@ class OutfitViewSet(viewsets.ModelViewSet):
         return Response({
             'preview_image_url': serializer.data['preview_image_url']
         })
+
+class RecommendationViewSet(viewsets.ViewSet):
+    """
+    ViewSet for generating smart outfit recommendations
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def list(self, request):
+        """
+        Get user's previous recommendations
+        GET /api/recommendations/
+        """
+        recommendations = Recommendation.objects.filter(user=request.user).order_by('-created_at')[:10]
+        serializer = RecommendationSerializer(recommendations, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'])
+    def generate(self, request):
+        """
+        Generate new outfit recommendations based on weather and occasion
+        POST /api/recommendations/generate/
+        
+        Expected payload:
+        {
+            "weather": "sunny",
+            "occasion": "casual",
+            "temperature": 22
+        }
+        """
+        from .recommendation_engine import RecommendationEngine
+        
+        serializer = RecommendationRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        weather = serializer.validated_data['weather']
+        occasion = serializer.validated_data['occasion']
+        temperature = serializer.validated_data.get('temperature')
+        
+        # Generate recommendations
+        recommended_items, compatibility_score, explanation = RecommendationEngine.generate_recommendation(
+            user=request.user,
+            weather=weather,
+            occasion=occasion,
+            temperature=temperature,
+        )
+        
+        # Save recommendation to database
+        recommendation = Recommendation.objects.create(
+            user=request.user,
+            weather=weather,
+            occasion=occasion,
+            temperature=temperature,
+            compatibility_score=compatibility_score,
+            explanation=explanation,
+        )
+        
+        # Add recommended items
+        recommendation.recommended_items.set(recommended_items)
+        
+        # Return serialized recommendation
+        result_serializer = RecommendationSerializer(recommendation, context={'request': request})
+        return Response(result_serializer.data, status=status.HTTP_201_CREATED)
+

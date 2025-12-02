@@ -59,12 +59,10 @@ class WardrobeItem(models.Model):
     class CategoryType(models.TextChoices):
         TOPS = "Tops", "Tops"
         BOTTOMS = "Bottoms", "Bottoms"
-        INNERWEAR = "Innerwear", "Innerwear"
-        OUTERWEAR = "Outerwear", "Outerwear"
-        SHOES = "Shoes", "Shoes"
-        ACCESSORIES = "Accessories", "Accessories"
-        ONE_PIECES = "One-Pieces", "One-Pieces"   
-        ETC = "Etc.", "Etc."
+        MID_LAYER = "Mid Layer", "Mid Layer"
+        OUTER_LAYER = "Outer Layer", "Outer Layer"
+        ACCESSORY = "Accessory", "Accessory"
+        OTHER = "Other", "Other"
 
     class SeasonType(models.TextChoices):
         SPRING = "Spring", "Spring"
@@ -77,7 +75,7 @@ class WardrobeItem(models.Model):
     category = models.CharField(
         blank=True,
         choices=CategoryType.choices,
-        max_length=11,   
+        max_length=20,   
     )
     season = models.CharField(
         blank=True,
@@ -128,6 +126,10 @@ class Outfit(models.Model):
     # Optional preview image 
     preview_image = models.ImageField(upload_to='outfits/previews/', blank=True, null=True)
     
+    # Favorites and scheduling
+    is_favorite = models.BooleanField(default=False)
+    scheduled_date = models.DateTimeField(blank=True, null=True)
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -176,6 +178,52 @@ class OutfitItem(models.Model):
         
     def __str__(self):
         return f"{self.clothing_item.name} in {self.outfit.name}"
+
+class Recommendation(models.Model):
+    """
+    Represents a smart outfit recommendation for a user based on context
+    """
+    WEATHER_CHOICES = [
+        ('sunny', 'Sunny'),
+        ('cloudy', 'Cloudy'),
+        ('rainy', 'Rainy'),
+        ('snowy', 'Snowy'),
+        ('hot', 'Hot'),
+        ('cold', 'Cold'),
+    ]
+    
+    OCCASION_CHOICES = [
+        ('casual', 'Casual'),
+        ('professional', 'Professional'),
+        ('formal', 'Formal'),
+        ('party', 'Party'),
+        ('date', 'Date'),
+        ('gym', 'Gym'),
+        ('outdoor', 'Outdoor'),
+        ('beach', 'Beach'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recommendations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Context
+    weather = models.CharField(max_length=20, choices=WEATHER_CHOICES)
+    occasion = models.CharField(max_length=20, choices=OCCASION_CHOICES)
+    temperature = models.IntegerField(null=True, blank=True)  # Celsius
+    
+    # Recommended items (could be multiple outfits)
+    recommended_items = models.ManyToManyField(WardrobeItem, related_name='recommendations')
+    
+    # Scores & explanation
+    compatibility_score = models.FloatField(default=0.0)  # 0-100
+    explanation = models.TextField()
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Recommendation for {self.user.username} - {self.occasion} ({self.weather})"
+
 
 # @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 # def create_auth_token(sender, instance=None, created=False, **kwargs):

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0002_outfit_outfititem'),
+        ('api', '0003_alter_wardrobeitem_user'),
     ]
 
     operations = [

@@ -152,6 +152,49 @@ export async function deleteOutfit(outfitId: string): Promise<void> {
 }
 
 /**
+ * Toggle outfit as favorite
+ */
+export async function toggleFavorite(outfitId: string): Promise<{ is_favorite: boolean; outfit: OutfitResponse }> {
+  const response = await apiClient.post(`/outfits/${outfitId}/toggle-favorite/`);
+  return {
+    is_favorite: response.data.is_favorite,
+    outfit: keysToCamelCase<OutfitResponse>(response.data.outfit),
+  };
+}
+
+/**
+ * Schedule outfit for a specific date
+ */
+export async function scheduleOutfit(
+  outfitId: string,
+  scheduledDate: string
+): Promise<{ scheduled_date: string; outfit: OutfitResponse }> {
+  const response = await apiClient.post(`/outfits/${outfitId}/schedule/`, {
+    scheduled_date: scheduledDate,
+  });
+  return {
+    scheduled_date: response.data.scheduled_date,
+    outfit: keysToCamelCase<OutfitResponse>(response.data.outfit),
+  };
+}
+
+/**
+ * Get all scheduled outfits
+ */
+export async function getScheduledOutfits(): Promise<OutfitResponse[]> {
+  const response = await apiClient.get<OutfitResponse[]>('/outfits/scheduled/');
+  return keysToCamelCase<OutfitResponse[]>(response.data);
+}
+
+/**
+ * Get all favorite outfits
+ */
+export async function getFavoriteOutfits(): Promise<OutfitResponse[]> {
+  const response = await apiClient.get<OutfitResponse[]>('/outfits/favorites/');
+  return keysToCamelCase<OutfitResponse[]>(response.data);
+}
+
+/**
  * Upload outfit preview image
  */
 export async function uploadOutfitPreview(

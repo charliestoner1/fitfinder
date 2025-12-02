@@ -37,7 +37,7 @@ export function RegisterForm() {
         description: 'Your account has been created successfully.',
       });
 
-      router.push('/wardrobe');
+      router.push('/');
     } catch (error: any) {
       const errorMessage = error.response?.data?.message 
         || error.response?.data?.email?.[0] 

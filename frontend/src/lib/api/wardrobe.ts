@@ -39,11 +39,7 @@ export const wardrobeService = {
       const formData = new FormData();
       formData.append('item_image', image);
 
-      const response = await api.post('/wardrobe/autotag-preview/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await api.post('/wardrobe/autotag-preview/', formData);
 
       const data = response.data;
 

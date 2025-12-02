@@ -225,40 +225,39 @@ PATTERN_WORDS = set(PATTERN_ALIASES.values())
 CATEGORY_MAP: Dict[str, str] = {
     # Tops
     "t-shirt": "Tops", "top": "Tops", "blouse": "Tops", "shirt": "Tops",
-    "polo shirt": "Tops", "hoodie": "Tops", "sweatshirt": "Tops", "sweater": "Tops",
-    "cardigan": "Tops", "tank top": "Tops", "camisole": "Tops", "crop top": "Tops",
-    "long-sleeve shirt": "Tops",
+    "polo shirt": "Tops", "hoodie": "Tops", "tank top": "Tops", "camisole": "Tops", 
+    "crop top": "Tops", "long-sleeve shirt": "Tops", "turtleneck": "Tops", "tank": "Tops",
 
-    # Outerwear
-    "jacket": "Outerwear", "coat": "Outerwear", "blazer": "Outerwear",
-    "parka": "Outerwear", "windbreaker": "Outerwear", "raincoat": "Outerwear",
+    # Mid Layer (soft layering pieces - sweaters, cardigans)
+    "sweater": "Mid Layer", "cardigan": "Mid Layer", "sweatshirt": "Mid Layer",
+    "vest": "Mid Layer", "gilet": "Mid Layer", "pullover": "Mid Layer",
 
-    # Innerwear
-    "bra": "Innerwear",
-    "sports bra": "Innerwear",
-    "bralette": "Innerwear",
-    "underwear": "Innerwear",
-    "panties": "Innerwear",
-    "boxers": "Innerwear",
-    "briefs": "Innerwear",
-    "socks": "Innerwear",
+    # Outer Layer (structured jackets and coats)
+    "jacket": "Outer Layer", "coat": "Outer Layer", "parka": "Outer Layer",
+    "blazer": "Outer Layer", "windbreaker": "Outer Layer", "raincoat": "Outer Layer", 
+    "trench coat": "Outer Layer", "winter coat": "Outer Layer", "wool coat": "Outer Layer",
+    "denim jacket": "Outer Layer", "leather jacket": "Outer Layer",
 
     # Bottoms
     "jeans": "Bottoms", "pants": "Bottoms", "sweatpants": "Bottoms",
     "joggers": "Bottoms", "shorts": "Bottoms", "skirt": "Bottoms",
-    "leggings": "Bottoms",
+    "leggings": "Bottoms", "trousers": "Bottoms", "chinos": "Bottoms",
+    "cargo pants": "Bottoms", "dress pants": "Bottoms",
 
-    # One-pieces
-    "dress": "One-pieces", "jumpsuit": "One-pieces", "romper": "One-pieces",
-
-    # Footwear
-    "shoes": "Shoes", "sneakers": "Shoes", "boots": "Shoes",
-    "sandals": "Shoes", "heels": "Shoes", "loafers": "Shoes",
-
-    # Accessories
-    "hat": "Accessories", "beanie": "Accessories", "cap": "Accessories",
-    "scarf": "Accessories", "belt": "Accessories", "bag": "Accessories",
-    "backpack": "Accessories", "tie": "Accessories",
+    # Accessories (includes jewelry, bags, footwear accessories, etc.)
+    "hat": "Accessory", "beanie": "Accessory", "cap": "Accessory",
+    "scarf": "Accessory", "belt": "Accessory", "bag": "Accessory",
+    "backpack": "Accessory", "tie": "Accessory", "gloves": "Accessory",
+    "mittens": "Accessory", "sunglasses": "Accessory", "glasses": "Accessory",
+    "watch": "Accessory", "bracelet": "Accessory", "necklace": "Accessory",
+    "ring": "Accessory", "earrings": "Accessory", "pendant": "Accessory",
+    "anklet": "Accessory", "choker": "Accessory", "locket": "Accessory",
+    "brooch": "Accessory", "pin": "Accessory", "hair clip": "Accessory",
+    "headband": "Accessory", "hairband": "Accessory", "hair accessory": "Accessory",
+    "umbrella": "Accessory", "wallet": "Accessory", "purse": "Accessory",
+    "shoes": "Accessory", "sneakers": "Accessory", "boots": "Accessory",
+    "sandals": "Accessory", "heels": "Accessory", "loafers": "Accessory",
+    "flats": "Accessory", "pumps": "Accessory", "slip-ons": "Accessory",
 }
 
 def _norm_token(token: str) -> str:
