@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { FeedbackSection } from "@/components/feedback-section";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   LogIn,
@@ -98,11 +97,6 @@ function UnauthenticatedLanding() {
       {/* Hero Section - Fashion Forward */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
         <div className="text-center mb-16 animate-slide-up">
-          <div className="mb-8 inline-block">
-            <div className="text-sm font-bold uppercase tracking-[0.2em] animate-shimmer" style={{ color: '#86B4FA' }}>
-              Elevate Your Style
-            </div>
-          </div>
           <h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-widest animate-bounce-pop" style={{ color: '#E8A8D4', fontFamily: 'var(--font-vt323)' }}>
             FitFinder
           </h1>
@@ -120,27 +114,6 @@ function UnauthenticatedLanding() {
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <Card className="animate-slide-up hover:animate-glow" style={{ animationDelay: '0.1s' }}>
-            <CardContent className="pt-6 text-center">
-              <p className="text-4xl font-bold text-blue-600 mb-2 animate-bounce-pop">1000+</p>
-              <p className="text-slate-600">Items Organized</p>
-            </CardContent>
-          </Card>
-          <Card className="animate-slide-up hover:animate-glow" style={{ animationDelay: '0.2s' }}>
-            <CardContent className="pt-6 text-center">
-              <p className="text-4xl font-bold text-purple-600 mb-2 animate-bounce-pop">500+</p>
-              <p className="text-slate-600">Outfit Combinations</p>
-            </CardContent>
-          </Card>
-          <Card className="animate-slide-up hover:animate-glow" style={{ animationDelay: '0.3s' }}>
-            <CardContent className="pt-6 text-center">
-              <p className="text-4xl font-bold text-green-600 mb-2 animate-bounce-pop">95%</p>
-              <p className="text-slate-600">User Satisfaction</p>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Features Grid */}
         <section className="mb-20">
