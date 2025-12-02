@@ -17,6 +17,12 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
+    
+    // Don't set Content-Type for FormData - let the browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => {
@@ -36,7 +42,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refresh_token');
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh/`,
+          `${process.env.NEXT_PUBLIC_API_URL}/token/refresh/`,
           { refresh: refreshToken }
         );
 
@@ -48,7 +54,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/auth/login';
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

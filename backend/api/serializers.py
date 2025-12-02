@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from .models import *
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 User = get_user_model()
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [ "username", "email", "first_name", "last_name", "id"]
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,11 +16,31 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
         return user
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        # Try to find user by email first
+        email = data.get('email')
+        password = data.get('password')
+        
+        try:
+            user = User.objects.get(email=email)
+            # Verify password
+            if user.check_password(password) and user.is_active:
+                return user
+            else:
+                raise serializers.ValidationError("Invalid email or password.")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password.")
     
 class WardrobeItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = WardrobeItem
-        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name"]
+        fields = ["id", "item_image", "category", "season", "brand", "material", "price", "name", "tags", "user"]
+        extra_kwargs = {"user": {"read_only": True}}
 
 class OutfitItemSerializer(serializers.ModelSerializer):
     """
@@ -57,6 +81,8 @@ class OutfitSerializer(serializers.ModelSerializer):
             'occasion',
             'season',
             'preview_image_url',
+            'is_favorite',
+            'scheduled_date',
             'created_at',
             'updated_at',
             'likes',
@@ -84,7 +110,7 @@ class OutfitCreateUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Outfit
-        fields = ['name', 'occasion', 'season', 'items', 'tags']
+        fields = ['name', 'occasion', 'season', 'is_favorite', 'scheduled_date', 'items', 'tags']
     
     def create(self, validated_data):
         items_data = validated_data.pop('items')
@@ -145,20 +171,48 @@ class OutfitCreateUpdateSerializer(serializers.ModelSerializer):
         
         return instance
 
+class RecommendationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for outfit recommendations with nested item data
+    """
+    recommended_items = WardrobeItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Recommendation
+        fields = [
+            'id',
+            'weather',
+            'occasion',
+            'temperature',
+            'recommended_items',
+            'compatibility_score',
+            'explanation',
+            'created_at',
+        ]
+        read_only_fields = ['created_at', 'compatibility_score', 'explanation', 'recommended_items']
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class RecommendationRequestSerializer(serializers.Serializer):
+    """
+    Serializer for generating new recommendations
+    """
+    weather = serializers.ChoiceField(choices=[
+        ('sunny', 'Sunny'),
+        ('cloudy', 'Cloudy'),
+        ('rainy', 'Rainy'),
+        ('snowy', 'Snowy'),
+        ('hot', 'Hot'),
+        ('cold', 'Cold'),
+    ])
+    occasion = serializers.ChoiceField(choices=[
+        ('casual', 'Casual'),
+        ('professional', 'Professional'),
+        ('formal', 'Formal'),
+        ('party', 'Party'),
+        ('date', 'Date'),
+        ('gym', 'Gym'),
+        ('outdoor', 'Outdoor'),
+        ('beach', 'Beach'),
+    ])
+    temperature = serializers.IntegerField(required=False, allow_null=True)
 

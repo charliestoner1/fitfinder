@@ -5,6 +5,7 @@
 
 import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Navbar } from '@/components/navbar';
 import { useOutfitBuilderStore } from '@/store/outfit-builder-store';
 import { WardrobeSidebar } from '@/components/outfit-builder/WardrobeSidebar';
 import { OutfitCanvas } from '@/components/outfit-builder/OutfitCanvas';
@@ -99,12 +100,13 @@ function OutfitBuilderContent() {
   }, [editOutfitId, clearCanvas, addItemToCanvas]);
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-no-repeat bg-fixed" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Cdefs%3E%3Cstyle%3E.bow-loop%7Bfill:%23FFAEDA;opacity:0.45%7D.bow-center%7Bfill:%23FFAEDA;opacity:0.6%7D%3C/style%3E%3C/defs%3E%3Cg transform=%22translate(30,20)%22%3E%3Cpath class=%22bow-loop%22 d=%22M -8 0 C -12 -4 -12 -8 -8 -10 C -4 -8 -4 -2 -8 0 Z%22/%3E%3Cpath class=%22bow-loop%22 d=%22M 8 0 C 12 -4 12 -8 8 -10 C 4 -8 4 -2 8 0 Z%22/%3E%3Crect class=%22bow-center%22 x=%22-1.5%22 y=%22-3%22 width=%223%22 height=%226%22 rx=%221%22/%3E%3C/g%3E%3Cg transform=%22translate(150,60)%22%3E%3Cpath class=%22bow-loop%22 d=%22M -8 0 C -12 -4 -12 -8 -8 -10 C -4 -8 -4 -2 -8 0 Z%22/%3E%3Cpath class=%22bow-loop%22 d=%22M 8 0 C 12 -4 12 -8 8 -10 C 4 -8 4 -2 8 0 Z%22/%3E%3Crect class=%22bow-center%22 x=%22-1.5%22 y=%22-3%22 width=%223%22 height=%226%22 rx=%221%22/%3E%3C/g%3E%3Cg transform=%22translate(60,140)%22%3E%3Cpath class=%22bow-loop%22 d=%22M -8 0 C -12 -4 -12 -8 -8 -10 C -4 -8 -4 -2 -8 0 Z%22/%3E%3Cpath class=%22bow-loop%22 d=%22M 8 0 C 12 -4 12 -8 8 -10 C 4 -8 4 -2 8 0 Z%22/%3E%3Crect class=%22bow-center%22 x=%22-1.5%22 y=%22-3%22 width=%223%22 height=%226%22 rx=%221%22/%3E%3C/g%3E%3Cg transform=%22translate(170,150)%22%3E%3Cpath class=%22bow-loop%22 d=%22M -8 0 C -12 -4 -12 -8 -8 -10 C -4 -8 -4 -2 -8 0 Z%22/%3E%3Cpath class=%22bow-loop%22 d=%22M 8 0 C 12 -4 12 -8 8 -10 C 4 -8 4 -2 8 0 Z%22/%3E%3Crect class=%22bow-center%22 x=%22-1.5%22 y=%22-3%22 width=%223%22 height=%226%22 rx=%221%22/%3E%3C/g%3E%3C/svg%3E")', backgroundSize: '200px 200px', backgroundColor: '#ffffff' }}>
+      <Navbar />
       <OutfitBuilderToolbar />
       
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar - Wardrobe */}
-        <div className="w-96 border-r">
+        <div className="w-[550px] border-r overflow-y-auto">
           <WardrobeSidebar />
         </div>
 
@@ -120,8 +122,8 @@ function OutfitBuilderContent() {
 export default function OutfitBuilderPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: '#ffffff' }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#86B4FA' }} />
       </div>
     }>
       <OutfitBuilderContent />

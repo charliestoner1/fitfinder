@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 from django.utils import timezone
-# Create your models here.
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CustomUserManager(UserManager):
     def create_user(self, username, email, first_name, last_name, password, **extra_fields):
@@ -32,6 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
+    user_type = models.CharField(max_length=30, default='regular')
 
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -42,8 +45,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
     
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     
     class Meta:
         verbose_name = 'user'
@@ -53,19 +56,41 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
 class WardrobeItem(models.Model):
-    CategoryType = models.TextChoices("Category", "Tops Bottoms Innerwear Outerwear Shoes Accessories Etc.")
-    SeasonType = models.TextChoices("Season", "Spring Summer Fall Winter None")
-    item_image = models.ImageField(blank=True, upload_to="wardrobe/items/images")
-    category = models.CharField(blank=True, choices=CategoryType, max_length=11)
-    season = models.CharField(blank=True, choices=SeasonType, max_length=10)
-    brand = models.CharField(blank=True, max_length = 30)
-    material = models.CharField(blank=True, max_length= 30)
-    price = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
-    name = models.CharField(blank=False, max_length = 30)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    def __str__(self):
-        return self.name 
+    class CategoryType(models.TextChoices):
+        TOPS = "Tops", "Tops"
+        BOTTOMS = "Bottoms", "Bottoms"
+        MID_LAYER = "Mid Layer", "Mid Layer"
+        OUTER_LAYER = "Outer Layer", "Outer Layer"
+        ACCESSORY = "Accessory", "Accessory"
+        OTHER = "Other", "Other"
 
+    class SeasonType(models.TextChoices):
+        SPRING = "Spring", "Spring"
+        SUMMER = "Summer", "Summer"
+        FALL = "Fall", "Fall"
+        WINTER = "Winter", "Winter"
+        NONE = "None", "None"
+
+    item_image = models.ImageField(blank=True, upload_to="wardrobe/items/images")
+    category = models.CharField(
+        blank=True,
+        choices=CategoryType.choices,
+        max_length=20,   
+    )
+    season = models.CharField(
+        blank=True,
+        choices=SeasonType.choices,
+        max_length=10,
+    )
+    brand = models.CharField(blank=True, max_length=30)
+    material = models.CharField(blank=True, max_length=30)
+    price = models.DecimalField(blank=True, null=True, max_digits=5, decimal_places=2)
+    name = models.CharField(blank=False, max_length=30)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    tags = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return self.name
 
 # outfit models
 
@@ -100,6 +125,10 @@ class Outfit(models.Model):
     
     # Optional preview image 
     preview_image = models.ImageField(upload_to='outfits/previews/', blank=True, null=True)
+    
+    # Favorites and scheduling
+    is_favorite = models.BooleanField(default=False)
+    scheduled_date = models.DateTimeField(blank=True, null=True)
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -149,3 +178,55 @@ class OutfitItem(models.Model):
         
     def __str__(self):
         return f"{self.clothing_item.name} in {self.outfit.name}"
+
+class Recommendation(models.Model):
+    """
+    Represents a smart outfit recommendation for a user based on context
+    """
+    WEATHER_CHOICES = [
+        ('sunny', 'Sunny'),
+        ('cloudy', 'Cloudy'),
+        ('rainy', 'Rainy'),
+        ('snowy', 'Snowy'),
+        ('hot', 'Hot'),
+        ('cold', 'Cold'),
+    ]
+    
+    OCCASION_CHOICES = [
+        ('casual', 'Casual'),
+        ('professional', 'Professional'),
+        ('formal', 'Formal'),
+        ('party', 'Party'),
+        ('date', 'Date'),
+        ('gym', 'Gym'),
+        ('outdoor', 'Outdoor'),
+        ('beach', 'Beach'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recommendations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Context
+    weather = models.CharField(max_length=20, choices=WEATHER_CHOICES)
+    occasion = models.CharField(max_length=20, choices=OCCASION_CHOICES)
+    temperature = models.IntegerField(null=True, blank=True)  # Celsius
+    
+    # Recommended items (could be multiple outfits)
+    recommended_items = models.ManyToManyField(WardrobeItem, related_name='recommendations')
+    
+    # Scores & explanation
+    compatibility_score = models.FloatField(default=0.0)  # 0-100
+    explanation = models.TextField()
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Recommendation for {self.user.username} - {self.occasion} ({self.weather})"
+
+
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_auth_token(sender, instance=None, created=False, **kwargs):
+#     if created:
+#         Token.objects.create(user=instance)
+#         RefreshToken.objects.create(user=instance) 

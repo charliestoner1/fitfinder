@@ -131,14 +131,17 @@ export const useOutfitBuilderStore = create<OutfitBuilderState>()(
           ? Math.max(...existingItems.map((i: OutfitItem) => i.zIndex))
           : 0;
 
+        // Get default size for layer, with fallback
+        const defaultSize = DEFAULT_ITEM_SIZE[layer] || { width: 150, height: 150 };
+
         const outfitItem: OutfitItem = {
           ...item,
           layer,
           position: {
-            x: state.canvasSize.width / 2 - DEFAULT_ITEM_SIZE[layer].width / 2,
-            y: state.canvasSize.height / 2 - DEFAULT_ITEM_SIZE[layer].height / 2,
+            x: state.canvasSize.width / 2 - defaultSize.width / 2,
+            y: state.canvasSize.height / 2 - defaultSize.height / 2,
           },
-          size: DEFAULT_ITEM_SIZE[layer],
+          size: defaultSize,
           rotation: 0,
           zIndex: maxZIndex + 1,
         };

@@ -2,16 +2,17 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useOutfitBuilderStore, type ClothingItem, type ClothingLayer } from '@/store/outfit-builder-store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shirt, ShoppingBag, Layers, Layers2, Watch, Search, Loader2 } from 'lucide-react';
+import { Shirt, ShoppingBag, Layers, Layers2, Watch, Search, Loader2, RefreshCw, MoreVertical } from 'lucide-react';
 import  apiClient  from '@/lib/api/client';
 import { toast } from 'sonner';
+
 
 interface WardrobeItemCardProps {
   item: ClothingItem;
@@ -85,8 +86,8 @@ const LAYER_ICONS = {
 const LAYER_LABELS = {
   tops: 'Tops',
   bottoms: 'Bottoms',
-  mid: 'Mid-Layer',
-  outer: 'Outer Layer',
+  mid: 'Mid',
+  outer: 'Outer',
   accessory: 'Accessories',
 };
 
@@ -113,51 +114,79 @@ interface BackendWardrobeItem {
 export function WardrobeSidebar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const wardrobeItems = useOutfitBuilderStore((state) => state.wardrobeItems);
   const addItemToCanvas = useOutfitBuilderStore((state) => state.addItemToCanvas);
   const setWardrobeItems = useOutfitBuilderStore((state) => state.setWardrobeItems);
 
-  useEffect(() => {
-    const fetchWardrobeItems = async () => {
+  const fetchWardrobeItems = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
       setIsLoading(true);
-      try {
-        const response = await apiClient.get<BackendWardrobeItem[]>('/wardrobe/items/');
-        
-        // Transform backend data to frontend ClothingItem format
-        const transformedItems: ClothingItem[] = response.data.map(item => ({
-          id: item.id.toString(), // Convert number to string for frontend
-          imageUrl: item.item_image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image',
-          category: item.name || item.category || 'Uncategorized',
-          colors: ['#CCCCCC'], // Default color - can be enhanced with ML tagging later
-          season: item.season,
-          brand: item.brand,
-        }));
-        
-        console.log('Loaded wardrobe items:', transformedItems);
-        setWardrobeItems(transformedItems);
-      } catch (error: any) {
-        console.error('Error fetching wardrobe items:', error);
-        toast.error('Failed to load wardrobe items');
-        
-        // Fallback to empty array if API fails
-        setWardrobeItems([]);
-      } finally {
+    }
+    try {
+      const response = await apiClient.get<BackendWardrobeItem[]>('/wardrobe/items/');
+      
+      // Transform backend data to frontend ClothingItem format
+      const transformedItems: ClothingItem[] = response.data.map(item => ({
+        id: item.id.toString(), // Convert number to string for frontend
+        imageUrl: item.item_image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image',
+        category: item.category || 'Uncategorized',
+        colors: ['#CCCCCC'], // Default color - can be enhanced with ML tagging later
+        season: item.season || 'None',
+        brand: item.brand || 'None',
+      }));
+      
+      console.log('Loaded wardrobe items:', transformedItems);
+      setWardrobeItems(transformedItems);
+      if (isRefresh) {
+        toast.success('Wardrobe updated');
+      }
+    } catch (error) {
+      console.error('Error fetching wardrobe items:', error);
+      toast.error('Failed to load wardrobe items');
+      
+      // Fallback to empty array if API fails
+      setWardrobeItems([]);
+    } finally {
+      if (isRefresh) {
+        setIsRefreshing(false);
+      } else {
         setIsLoading(false);
       }
-    };
-
-    fetchWardrobeItems();
+    }
   }, [setWardrobeItems]);
 
+  const handleClearCache = () => {
+    // Clear ALL localStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear the store
+    setWardrobeItems([]);
+    
+    // Hard reload the page to ensure complete cache clear
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
+    
+    toast.success('Clearing all cache...');
+  };
+
+  useEffect(() => {
+    fetchWardrobeItems();
+  }, [fetchWardrobeItems]);
+
   const getItemsByCategory = (items: ClothingItem[], layer: ClothingLayer) => {
-    // More flexible category matching
+    // Map new category names to outfit builder layers
     const categoryMap: Record<ClothingLayer, string[]> = {
-      tops: ['t-shirt', 'shirt', 'blouse', 'top', 'dress', 'tank', 'polo', 'turtleneck', 'tops'],
-      bottoms: ['pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings', 'bottoms'],
-      mid: ['sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt', 'innerwear'],
-      outer: ['jacket', 'coat', 'blazer', 'parka', 'outerwear', 'windbreaker'],
-      accessory: ['hat', 'scarf', 'belt', 'jewelry', 'bag', 'shoes', 'watch', 'accessory', 'socks', 'tie', 'accessories'],
-    };
+      tops: ['tops', 't-shirt', 'shirt', 'blouse', 'top', 'tank', 'polo', 'turtleneck'],
+      bottoms: ['bottoms', 'pants', 'jeans', 'shorts', 'skirt', 'bottom', 'trousers', 'leggings'],
+      mid: ['mid layer', 'sweater', 'cardigan', 'vest', 'hoodie', 'pullover', 'sweatshirt', 'gilet'],
+      outer: ['outer layer', 'jacket', 'coat', 'blazer', 'parka', 'windbreaker', 'raincoat', 'trench'],
+      accessory: ['accessory', 'accessories', 'shoes', 'hat', 'scarf', 'belt', 'jewelry', 'bag', 'watch', 'socks', 'tie', 'other'],
+};
 
     // Filter by layer
     let filteredItems = items.filter(item => {
@@ -194,7 +223,30 @@ export function WardrobeSidebar() {
   return (
     <div className="h-full bg-white">
       <div className="border-b p-4">
-        <h2 className="text-lg font-semibold">Your Wardrobe</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Your Wardrobe</h2>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => fetchWardrobeItems(true)}
+              disabled={isRefreshing}
+              className="gap-1"
+              title="Refresh wardrobe"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleClearCache}
+              className="gap-1"
+              title="Clear cache and refresh"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
         <p className="text-xs text-gray-500 mb-3">
           Click items to add them to your outfit
         </p>
@@ -222,11 +274,11 @@ export function WardrobeSidebar() {
       </div>
 
       <Tabs defaultValue="tops" className="h-[calc(100%-140px)]">
-        <TabsList className="w-full justify-start rounded-none border-b px-4">
+        <TabsList className="w-full justify-start rounded-none border-b px-0 bg-transparent gap-0">
           {(Object.keys(LAYER_ICONS) as ClothingLayer[]).map((layer) => {
             const Icon = LAYER_ICONS[layer];
             return (
-              <TabsTrigger key={layer} value={layer} className="gap-2 text-xs">
+              <TabsTrigger key={layer} value={layer} className="gap-2 text-sm py-3 px-4 flex-1 rounded-none border-b-2 border-b-transparent data-[state=active]:border-b-pink-500" style={{ color: '#475569' }}>
                 <Icon className="h-4 w-4" />
                 {LAYER_LABELS[layer]}
               </TabsTrigger>

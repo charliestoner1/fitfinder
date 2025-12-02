@@ -27,10 +27,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, Trash2, Download, Loader2 } from 'lucide-react';
+import { Save, Trash2, Download, Loader2, Heart } from 'lucide-react';
 import { Label } from '@/components/ui/label';
-import { createOutfit, updateOutfit } from '@/lib/api/outfits';
+import { createOutfit, updateOutfit, toggleFavorite, scheduleOutfit } from '@/lib/api/outfits';
 import { toast } from 'sonner';
+
 
 const OCCASIONS = [
   'casual',
@@ -51,6 +52,9 @@ const SEASONS = [
   'all',
 ] as const;
 
+
+
+
 export function OutfitBuilderToolbar() {
   const searchParams = useSearchParams();
   const editOutfitId = searchParams?.get('edit');
@@ -61,10 +65,11 @@ export function OutfitBuilderToolbar() {
   const [occasion, setOccasion] = useState('');
   const [season, setSeason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
 
   const currentOutfit = useOutfitBuilderStore((state) => state.currentOutfit);
   const clearCanvas = useOutfitBuilderStore((state) => state.clearCanvas);
-
+  
   // Pre-fill form when editing
   const handleDialogOpen = (open: boolean) => {
     if (open && isEditMode) {
@@ -101,7 +106,7 @@ export function OutfitBuilderToolbar() {
         ...currentOutfit,
         name: outfitName,
         occasion: occasion || undefined,
-        season: season as any,
+        season: (season || '') as string,
       };
 
       if (isEditMode && editOutfitId) {
@@ -109,25 +114,40 @@ export function OutfitBuilderToolbar() {
         console.log('Updating outfit:', editOutfitId);
         await updateOutfit(editOutfitId, outfitToSave);
         toast.success('Outfit updated successfully!');
+        
+        // Schedule if date provided
+        if (scheduledDate) {
+          await scheduleOutfit(editOutfitId, scheduledDate + 'T00:00:00');
+          toast.success('Outfit scheduled!');
+        }
       } else {
         // CREATE new outfit
         console.log('Creating new outfit');
-        await createOutfit(outfitToSave);
+        const savedOutfit = await createOutfit(outfitToSave);
         toast.success('Outfit saved successfully!');
+        
+        // Schedule if date provided
+        if (scheduledDate && savedOutfit?.id) {
+          await scheduleOutfit(savedOutfit.id, scheduledDate + 'T00:00:00');
+          toast.success('Outfit scheduled!');
+        }
       }
       
       setIsDialogOpen(false);
       setOutfitName('');
       setOccasion('');
       setSeason('');
+      setScheduledDate('');
 
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('=== ERROR SAVING OUTFIT ===');
       console.error('Error object:', error);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
-      toast.error(error.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'save'} outfit`);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error(`Failed to ${isEditMode ? 'update' : 'save'} outfit`);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -191,7 +211,6 @@ export function OutfitBuilderToolbar() {
           <Download className="mr-2 h-4 w-4" />
           Export
         </Button>
-
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" disabled={currentOutfit.items.length === 0}>
@@ -256,6 +275,17 @@ export function OutfitBuilderToolbar() {
                 </Select>
               </div>
 
+              <div className="grid gap-2">
+                <Label htmlFor="scheduled-date">Schedule for (optional)</Label>
+                <Input
+                  id="scheduled-date"
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  disabled={isSaving}
+                />
+              </div>
+
               <div className="rounded-lg bg-gray-50 p-3">
                 <p className="text-sm text-gray-600">
                   Your outfit contains {currentOutfit.items.length}{' '}
@@ -281,6 +311,21 @@ export function OutfitBuilderToolbar() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {isEditMode && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (editOutfitId) {
+                toggleFavorite(editOutfitId);
+              }
+            }}
+          >
+            <Heart className="mr-2 h-4 w-4" />
+            Favorite
+          </Button>
+        )}
       </div>
     </div>
   );
