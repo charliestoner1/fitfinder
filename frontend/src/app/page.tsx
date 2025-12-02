@@ -164,11 +164,11 @@ function UnauthenticatedLanding() {
         </section>
 
         {/* How It Works */}
-        <section className="mb-20 bg-white rounded-lg shadow-lg p-8 md:p-12 animate-slide-up">
+        <section className="mb-20 bg-white rounded-lg shadow-lg p-8 md:p-12 animate-slide-up overflow-hidden">
           <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center animate-slide-down">
             How It Works
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
                 step: 1,
@@ -178,8 +178,7 @@ function UnauthenticatedLanding() {
               {
                 step: 2,
                 title: "AI Tags Items",
-                description:
-                  "Our AI automatically categorizes and tags your clothes",
+                description: "Our AI automatically categorizes and tags your clothes",
               },
               {
                 step: 3,
@@ -204,7 +203,7 @@ function UnauthenticatedLanding() {
             ))}
           </div>
         </section>
-
+       
         {/* CTA Section - Luxe Fashion */}
         <section className="rounded-none shadow-2xl p-12 md:p-16 text-center mb-24 animate-slide-up hover:animate-glow" style={{ background: 'linear-gradient(135deg, #FFAEDA 0%, #C8B4FF 100%)' }}>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 uppercase tracking-wider animate-bounce-pop">
