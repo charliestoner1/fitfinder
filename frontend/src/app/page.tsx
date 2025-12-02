@@ -115,6 +115,89 @@ function UnauthenticatedLanding() {
         </div>
 
 
+        {/* Features Grid */}
+        <section className="mb-20">
+          <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center animate-slide-down">
+            Key Features
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {FEATURES.map((feature, index) => {
+              return (
+                <Card key={feature.title} className="hover:shadow-lg transition-shadow animate-slide-up hover:animate-glow" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardContent className="pt-6">
+                    <h3 className="text-lg font-semibold mb-2 animate-bounce-pop" style={{ color: '#FFAEDA' }}>
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-600">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="mb-20 bg-white rounded-lg shadow-lg p-8 md:p-12 animate-slide-up overflow-hidden">
+          <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center animate-slide-down">
+            How It Works
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                step: 1,
+                title: "Upload Wardrobe",
+                description: "Add photos of your clothing items",
+              },
+              {
+                step: 2,
+                title: "AI Tags Items",
+                description: "Our AI automatically categorizes and tags your clothes",
+              },
+              {
+                step: 3,
+                title: "Build Outfits",
+                description: "Mix and match items to create perfect looks",
+              },
+              {
+                step: 4,
+                title: "Get Recommendations",
+                description: "Receive personalized suggestions based on context",
+              },
+            ].map((item, index) => (
+              <div key={item.step} className="text-center animate-slide-up hover:animate-float" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold animate-bounce-pop hover:animate-spin-slow">
+                  {item.step}
+                </div>
+                <h3 className="font-semibold text-slate-900 mb-2 hover:text-pink-400 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-slate-600">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+       
+        {/* CTA Section - Luxe Fashion */}
+        <section className="rounded-none shadow-2xl p-12 md:p-16 text-center mb-24 animate-slide-up hover:animate-glow" style={{ background: 'linear-gradient(135deg, #FFAEDA 0%, #C8B4FF 100%)' }}>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 uppercase tracking-wider animate-bounce-pop">
+            Start Your Style Journey
+          </h2>
+          <p className="mb-10 text-lg max-w-2xl mx-auto animate-fade-in" style={{ color: 'rgba(255, 255, 255, 0.98)' }}>
+            Join fashionistas who transform their wardrobes with intelligence and style.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/login">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto uppercase font-bold tracking-wider border-white text-white hover:bg-white/10 animate-float">
+                Login
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button size="lg" className="w-full sm:w-auto uppercase font-bold tracking-wider bg-white" style={{ color: '#FFAEDA' }}>
+                Create Account
+              </Button>
+            </Link>
+          </div>
+        </section>
       </section>
 
       {/* Footer */}
@@ -148,27 +231,6 @@ function AuthenticatedHome() {
             Your AI-powered personal styling assistant for smart wardrobe management
             and outfit recommendations
           </p>
-        </div>
-
-        {/* About Us Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-24">
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-pink-200/30 transition-all duration-400 hover:bg-white/60 hover:border-pink-300/50 hover:shadow-xl animate-slide-left hover:animate-glow">
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#DB4E8F' }}>Front-end Lead</h3>
-            <p className="text-slate-700 font-semibold hover:text-pink-600 transition-colors">Charlie Stoner</p>
-            <p className="text-slate-700 font-semibold hover:text-pink-600 transition-colors">Thai-Son Nguyen</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-blue-200/30 transition-all duration-400 hover:bg-white/60 hover:border-blue-300/50 hover:shadow-xl animate-slide-right hover:animate-glow">
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#86B4FA' }}>Back-end Lead</h3>
-            <p className="text-slate-700 font-semibold hover:text-blue-600 transition-colors">Thai-Son Nguyen</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-green-200/30 transition-all duration-400 hover:bg-white/60 hover:border-green-300/50 hover:shadow-xl animate-slide-left hover:animate-glow" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#99F1B9' }}>Dev-ops & QA</h3>
-            <p className="text-slate-700 font-semibold hover:text-green-600 transition-colors">Nam Tran</p>
-          </div>
-          <div className="group p-8 backdrop-blur-sm bg-white/40 border border-purple-200/30 transition-all duration-400 hover:bg-white/60 hover:border-purple-300/50 hover:shadow-xl animate-slide-right hover:animate-glow" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-lg font-bold mb-4 animate-bounce-pop" style={{ color: '#C8B4FF' }}>ML Engineer</h3>
-            <p className="text-slate-700 font-semibold hover:text-purple-600 transition-colors">Emear Kilic</p>
-          </div>
         </div>
 
         {/* Features Grid - Fashionable */}
