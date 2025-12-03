@@ -102,7 +102,7 @@ export function Navbar() {
                     </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-white">
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-semibold text-slate-900">
                       {user.first_name} {user.last_name}

@@ -1,6 +1,8 @@
 // src/app/outfits/page.tsx
 // Page to view all your saved outfits
 
+'use client';
+
 import { Navbar } from '@/components/navbar';
 import { SavedOutfitsList } from '@/components/outfits/SavedOutfitsList';
 

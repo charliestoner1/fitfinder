@@ -221,25 +221,59 @@ export function SavedOutfitsList() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent 
+          className="border-2 shadow-lg"
+          style={{
+            backgroundColor: '#fff8fc',
+            borderColor: '#FFAEDA',
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>Delete Outfit</DialogTitle>
-            <DialogDescription>
+            <DialogTitle 
+              className="text-lg font-bold"
+              style={{ color: '#FFAEDA' }}
+            >
+              Delete Outfit
+            </DialogTitle>
+            <DialogDescription 
+              style={{ color: '#000000' }}
+              className="text-base"
+            >
               Are you sure you want to delete "{outfitToDelete?.name}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
+              className="font-semibold"
+              style={{
+                borderColor: '#99F1B9',
+                color: '#99F1B9',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0fdf9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
+              className="text-white font-semibold shadow-md"
+              style={{
+                background: 'linear-gradient(135deg, #FFAEDA 0%, #C8B4FF 100%)',
+              }}
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = 'brightness(0.9)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = 'brightness(1)';
+              }}
             >
               {isDeleting ? (
                 <>

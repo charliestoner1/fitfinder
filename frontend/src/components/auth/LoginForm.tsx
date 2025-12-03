@@ -30,8 +30,17 @@ export function LoginForm() {
     try {
       await authService.login(data);
       
-      toast.success('Success!', {
+      toast.success('Welcome Back!', {
         description: 'You have been logged in successfully.',
+        duration: 4000,
+        style: {
+          background: '#C8B4FF',
+          color: '#ffffff',
+          border: '2px solid #ffffff',
+          boxShadow: '0 0 15px rgba(255, 255, 255, 0.8), 0 8px 16px rgba(200, 180, 255, 0.4)',
+          fontSize: '16px',
+          fontWeight: '600',
+        },
       });
 
       router.push('/');
