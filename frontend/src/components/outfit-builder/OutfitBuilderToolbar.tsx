@@ -213,7 +213,7 @@ export function OutfitBuilderToolbar() {
         </Button>
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" disabled={currentOutfit.items.length === 0}>
+            <Button size="sm" disabled={currentOutfit.items.length === 0} variant="outline">
               <Save className="mr-2 h-4 w-4" />
               {isEditMode ? 'Update Outfit' : 'Save Outfit'}
             </Button>

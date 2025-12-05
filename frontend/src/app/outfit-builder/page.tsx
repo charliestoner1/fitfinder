@@ -3,7 +3,7 @@
 
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { useOutfitBuilderStore } from '@/store/outfit-builder-store';
@@ -19,6 +19,47 @@ function OutfitBuilderContent() {
   const editOutfitId = searchParams.get('edit');
   const clearCanvas = useOutfitBuilderStore((state) => state.clearCanvas);
   const addItemToCanvas = useOutfitBuilderStore((state) => state.addItemToCanvas);
+  
+  // Resizable sidebar state
+  const [sidebarWidth, setSidebarWidth] = useState(550);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Handle mouse down on resize handle
+  const handleMouseDown = () => {
+    setIsResizing(true);
+  };
+
+  // Handle mouse move for resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const newWidth = e.clientX;
+      // Constrain width between 300px and 800px
+      if (newWidth >= 300 && newWidth <= 800) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   useEffect(() => {
     const loadOutfitForEditing = async () => {
@@ -106,8 +147,21 @@ function OutfitBuilderContent() {
       
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar - Wardrobe */}
-        <div className="w-[550px] border-r overflow-y-auto">
+        <div 
+          ref={sidebarRef}
+          className="border-r overflow-y-auto relative"
+          style={{ width: `${sidebarWidth}px`, minWidth: '300px', maxWidth: '800px' }}
+        >
           <WardrobeSidebar />
+          
+          {/* Resize Handle */}
+          <div
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-pink-300 bg-gray-200 transition-colors"
+            onMouseDown={handleMouseDown}
+            style={{ 
+              zIndex: 10,
+            }}
+          />
         </div>
 
         {/* Main Canvas */}

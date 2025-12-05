@@ -189,7 +189,7 @@ export default function RecommendationsPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select weather" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white !bg-white bg-opacity-100">
                     {WEATHER_OPTIONS.map((w) => (
                       <SelectItem key={w} value={w}>
                         <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function RecommendationsPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select occasion" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white !bg-white bg-opacity-100">
                     {OCCASIONS.map((o) => (
                       <SelectItem key={o} value={o}>
                         <span className="capitalize">{o}</span>

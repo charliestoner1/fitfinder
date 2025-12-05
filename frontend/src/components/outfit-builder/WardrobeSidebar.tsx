@@ -43,7 +43,7 @@ function WardrobeItemCard({ item, layer, onAddToCanvas }: WardrobeItemCardProps)
       <div className="absolute inset-0 bg-black/0 transition-all group-hover:bg-black/40">
         {canAdd && (
           <div className="flex h-full items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" className="bg-white text-black hover:bg-white/90 font-semibold">
               Add to Outfit
             </Button>
           </div>
@@ -128,10 +128,19 @@ export function WardrobeSidebar() {
     try {
       const response = await apiClient.get<BackendWardrobeItem[]>('/wardrobe/items/');
       
+      // Helper function to construct full image URL
+      const getImageUrl = (imagePath: string) => {
+        if (!imagePath) return 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image';
+        if (imagePath.startsWith('http')) return imagePath;
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const baseUrl = backendUrl.replace('/api', '');
+        return `${baseUrl}/media/${imagePath}`;
+      };
+      
       // Transform backend data to frontend ClothingItem format
       const transformedItems: ClothingItem[] = response.data.map(item => ({
         id: item.id.toString(), // Convert number to string for frontend
-        imageUrl: item.item_image || 'https://via.placeholder.com/200/CCCCCC/FFFFFF?text=No+Image',
+        imageUrl: getImageUrl(item.item_image),
         category: item.category || 'Uncategorized',
         colors: ['#CCCCCC'], // Default color - can be enhanced with ML tagging later
         season: item.season || 'None',

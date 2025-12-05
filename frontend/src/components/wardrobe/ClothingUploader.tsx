@@ -276,9 +276,9 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
                 {!isUploading && (
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="outline"
                     size="sm"
-                    className="absolute top-3 right-3 shadow-lg z-10"
+                    className="absolute top-3 right-3 shadow-lg z-10 bg-white hover:bg-gray-50 text-gray-700 font-semibold border-gray-300"
                     onClick={handleRemoveImage}
                   >
                     <X className="w-4 h-4 mr-1" />
@@ -326,16 +326,16 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
           </div>
 
           {/* Optional Details */}
-          <div className="space-y-4">
-            <div className="border-t pt-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          <div className="space-y-6 mt-6">
+            <div className="border-t pt-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
                 Additional Details (Optional)
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="mb-2 block">Category</Label>
                 <Select
                   value={category}
                   onValueChange={(value) => {
@@ -347,9 +347,9 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white z-50">
                     {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
+                      <SelectItem key={cat} value={cat} className="cursor-pointer">
                         {cat}
                       </SelectItem>
                     ))}
@@ -358,7 +358,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
               </div>
 
               <div>
-                <Label htmlFor="season">Season</Label>
+                <Label htmlFor="season" className="mb-2 block">Season</Label>
                 <Select
                   value={season}
                   onValueChange={setSeason}
@@ -367,9 +367,9 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
                   <SelectTrigger id="season">
                     <SelectValue placeholder="Select season" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white z-50">
                     {SEASONS.map((s) => (
-                      <SelectItem key={s} value={s}>
+                      <SelectItem key={s} value={s} className="cursor-pointer">
                         {s}
                       </SelectItem>
                     ))}
@@ -378,7 +378,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
               </div>
 
               <div>
-                <Label htmlFor="brand">Brand</Label>
+                <Label htmlFor="brand" className="mb-2 block">Brand</Label>
                 <Input
                   id="brand"
                   placeholder="e.g., Nike, Zara"
@@ -389,7 +389,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
               </div>
 
               <div>
-                <Label htmlFor="material">Material</Label>
+                <Label htmlFor="material" className="mb-2 block">Material</Label>
                 <Input
                   id="material"
                   placeholder="e.g., Cotton, Denim"
@@ -400,7 +400,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
               </div>
 
               <div>
-                <Label htmlFor="price">Price (USD)</Label>
+                <Label htmlFor="price" className="mb-2 block">Price (USD)</Label>
                 <Input
                   id="price"
                   type="number"
@@ -447,6 +447,7 @@ export function ClothingUploader({ onSuccess, onCancel }: ClothingUploaderProps)
               type="submit" 
               disabled={isUploading || !selectedFile || !name.trim()}
               className="min-w-[140px]"
+              variant="outline"
             >
               {isUploading ? (
                 <>

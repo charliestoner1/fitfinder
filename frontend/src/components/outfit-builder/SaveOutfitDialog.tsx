@@ -115,7 +115,7 @@ export function SaveOutfitDialog({
               <SelectTrigger id="occasion">
                 <SelectValue placeholder="Select occasion" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white !bg-white bg-opacity-100 z-[100]" style={{ backgroundColor: '#fff', zIndex: 1000 }}>
                 {OCCASIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -136,7 +136,7 @@ export function SaveOutfitDialog({
               <SelectTrigger id="season">
                 <SelectValue placeholder="Select season" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white !bg-white bg-opacity-100 z-[100]" style={{ backgroundColor: '#fff', zIndex: 1000 }}>
                 {SEASONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -177,7 +177,7 @@ export function SaveOutfitDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-row items-center gap-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -186,9 +186,10 @@ export function SaveOutfitDialog({
             Cancel
           </Button>
           <Button
+            variant="outline"
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="border-pink-300"
           >
             {isSaving ? 'Saving...' : (
               <>
