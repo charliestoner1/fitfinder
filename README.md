@@ -37,6 +37,7 @@ FitFinder is a full-stack web application that leverages machine learning to rev
 - **API**: [Django REST Framework](https://www.django-rest-framework.org/)
 - **Language**: Python 3.12+
 - **Database**: SQLite (development), PostgreSQL (production)
+- **Cloud Storage**: Cloudinary
 - **Authentication**: JWT with [djangorestframework-simplejwt](https://github.com/jpadilla/django-rest-framework-simplejwt)
 - **CORS**: [django-cors-headers](https://github.com/adamchainz/django-cors-headers)
 
@@ -84,7 +85,7 @@ djangorestframework>=3.15.0
 djangorestframework-simplejwt>=5.3.0
 django-cors-headers>=4.3.0
 torch>=2.3.0
-transformers>=4.49.0
+transformers==4.49.0
 huggingface-hub>=0.25.0
 Pillow>=10.0.0
 gunicorn>=21.0.0
