@@ -27,14 +27,32 @@ import {
 interface ClothingItemCardProps {
   item: ClothingItem;
   onDelete: () => void;
+  onEdit?: (item: ClothingItem) => void;
 }
 
-export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
+export function ClothingItemCard({ item, onDelete, onEdit }: ClothingItemCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleDeleteConfirm = () => {
     onDelete();
     setShowDeleteDialog(false);
+  };
+
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(item);
+    }
+  };
+
+  // Construct full image URL
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    // If already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    // Otherwise, prepend the backend URL
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const baseUrl = backendUrl.replace('/api', ''); // Remove /api suffix if present
+    return `${baseUrl}/media/${imagePath}`;
   };
 
   return (
@@ -43,7 +61,7 @@ export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
         {/* Image */}
         <div className="relative aspect-square bg-gray-100">
           <img
-            src={item.itemImage}
+            src={getImageUrl(item.itemImage)}
             alt={item.name || item.category || 'Clothing item'}
             className="w-full h-full object-cover"
           />
@@ -55,18 +73,18 @@ export function ClothingItemCard({ item, onDelete }: ClothingItemCardProps) {
                 <Button
                   variant="secondary"
                   size="icon-sm"
-                  className="h-8 w-8 bg-white/90 hover:bg-white"
+                  className="h-8 w-8 bg-white hover:bg-gray-100 shadow-md"
                 >
-                  <MoreVertical className="w-4 h-4" />
+                  <MoreVertical className="w-4 h-4 text-gray-700" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Details
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-red-600"
+                  className="text-red-600 cursor-pointer focus:text-red-600"
                   onClick={() => setShowDeleteDialog(true)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />

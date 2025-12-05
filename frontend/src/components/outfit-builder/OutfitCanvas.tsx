@@ -2,7 +2,8 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+  // Ref for rotation interval
+import { useRef, useEffect, useState } from 'react';
 import { DndContext, DragEndEvent, useDraggable, useDroppable } from '@dnd-kit/core';
 import { useOutfitBuilderStore, type OutfitItem } from '@/store/outfit-builder-store';
 import { cn } from '@/lib/utils';
@@ -16,14 +17,19 @@ interface DraggableClothingItemProps {
 }
 
 function DraggableClothingItem({ item, isSelected, onSelect }: DraggableClothingItemProps) {
+  const removeItem = useOutfitBuilderStore((state) => state.removeItemFromCanvas);
+  const updateSize = useOutfitBuilderStore((state) => state.updateItemSize);
+  const updateRotation = useOutfitBuilderStore((state) => state.updateItemRotation);
+  const bringToFront = useOutfitBuilderStore((state) => state.bringToFront);
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: item.id,
     data: item,
   });
 
-  const removeItem = useOutfitBuilderStore((state) => state.removeItemFromCanvas);
-  const updateRotation = useOutfitBuilderStore((state) => state.updateItemRotation);
-  const bringToFront = useOutfitBuilderStore((state) => state.bringToFront);
+  // State for resize dragging
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStartRef = useRef<{ startY: number; startSize: { width: number; height: number } } | null>(null);
 
   // Calculate current position including drag delta
   const currentX = item.position.x + (transform?.x || 0);
@@ -42,23 +48,58 @@ function DraggableClothingItem({ item, isSelected, onSelect }: DraggableClothing
     opacity: isDragging ? 0.8 : 1,
   };
 
-  const handleRotate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    updateRotation(item.id, (item.rotation + 15) % 360);
-  };
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     removeItem(item.id);
   };
 
-  const handleBringToFront = (e: React.MouseEvent) => {
+  const handleRotate = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    bringToFront(item.id);
+    updateRotation(item.id, (item.rotation + 15) % 360);
   };
+
+  // Start resize drag
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsResizing(true);
+    resizeStartRef.current = {
+      startY: e.clientY,
+      startSize: { ...item.size },
+    };
+  };
+
+  // Effect for resize dragging
+  useEffect(() => {
+    if (!isResizing || !resizeStartRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizeStartRef.current) return;
+      
+      const deltaY = resizeStartRef.current.startY - e.clientY;
+      const scaleFactor = 1 + (deltaY / 200); // Adjust sensitivity
+      
+      const newWidth = Math.max(50, resizeStartRef.current.startSize.width * scaleFactor);
+      const newHeight = Math.max(50, resizeStartRef.current.startSize.height * scaleFactor);
+      
+      updateSize(item.id, { width: newWidth, height: newHeight });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      resizeStartRef.current = null;
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, item.id, updateSize]);
 
   return (
     <div
@@ -70,7 +111,9 @@ function DraggableClothingItem({ item, isSelected, onSelect }: DraggableClothing
       )}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        console.log('Item clicked:', item.id);
+        onSelect(); // This sets selectedItemId in store
+        bringToFront(item.id);
       }}
     >
       {/* Drag handle - the image area */}
@@ -78,6 +121,10 @@ function DraggableClothingItem({ item, isSelected, onSelect }: DraggableClothing
         className="relative h-full w-full"
         {...listeners}
         {...attributes}
+        onMouseDown={() => {
+          // Bring to front when starting to interact (drag or click)
+          bringToFront(item.id);
+        }}
       >
         <img
           src={item.imageUrl}
@@ -92,38 +139,36 @@ function DraggableClothingItem({ item, isSelected, onSelect }: DraggableClothing
         </div>
       </div>
 
-      {/* Control buttons - separate from drag area */}
-      {isSelected && (
-        <div className="absolute -right-2 -top-2 flex gap-1" style={{ pointerEvents: 'auto' }}>
-          <Button
-            size="icon"
-            variant="destructive"
-            className="h-6 w-6"
-            onClick={handleDelete}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-6 w-6"
-            onClick={handleRotate}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <RotateCw className="h-3 w-3" />
-          </Button>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="h-6 w-6"
-            onClick={handleBringToFront}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <Maximize2 className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
+      {/* Control buttons - always visible, but smaller */}
+      <div className="absolute right-1 top-1 flex gap-1" style={{ pointerEvents: 'auto' }}>
+        <Button
+          size="icon"
+          variant="destructive"
+          className="h-5 w-5 bg-red-600 hover:bg-red-700 shadow"
+          onClick={handleDelete}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <Trash2 className="h-3 w-3 text-white" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-5 w-5 bg-white hover:bg-gray-100 shadow border border-gray-400"
+          onClick={handleRotate}
+          title="Rotate 15°"
+        >
+          <RotateCw className="h-3 w-3 text-gray-700" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          className="h-5 w-5 bg-white hover:bg-gray-100 shadow border border-gray-400"
+          onMouseDown={handleResizeStart}
+          title="Click and drag to resize"
+        >
+          <Maximize2 className="h-3 w-3 text-gray-700" />
+        </Button>
+      </div>
     </div>
   );
 }

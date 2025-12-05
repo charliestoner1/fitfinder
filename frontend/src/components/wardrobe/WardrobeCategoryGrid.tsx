@@ -8,6 +8,7 @@ import { useState } from 'react';
 interface WardrobeCategoryGridProps {
   items: ClothingItem[];
   onDelete: (id: number) => void;
+  onEdit?: (item: ClothingItem) => void;
 }
 
 const CATEGORY_ORDER = [
@@ -28,7 +29,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; icon: string }
   'Other': { bg: 'bg-gray-50', text: 'text-gray-700', icon: '📦' },
 };
 
-export function WardrobeCategoryGrid({ items, onDelete }: WardrobeCategoryGridProps) {
+export function WardrobeCategoryGrid({ items, onDelete, onEdit }: WardrobeCategoryGridProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(CATEGORY_ORDER.slice(0, 3)) // Expand first 3 categories by default
   );
@@ -105,6 +106,7 @@ export function WardrobeCategoryGrid({ items, onDelete }: WardrobeCategoryGridPr
                       <ClothingItemCard
                         item={item}
                         onDelete={() => onDelete(item.id)}
+                        onEdit={onEdit}
                       />
                     </div>
                   ))}

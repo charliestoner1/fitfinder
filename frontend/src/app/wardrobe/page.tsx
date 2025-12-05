@@ -9,6 +9,7 @@ import { Navbar } from '@/components/navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ClothingUploader } from '@/components/wardrobe/ClothingUploader';
+import { EditItemDialog } from '@/components/wardrobe/EditItemDialog';
 import { WardrobeCategoryGrid } from '@/components/wardrobe/WardrobeCategoryGrid';
 import { wardrobeService } from '@/lib/api/wardrobe';
 import { ClothingItem } from '@/types/wardrobe';
@@ -21,6 +22,8 @@ export default function WardrobePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUploader, setShowUploader] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     loadWardrobeItems();
@@ -85,7 +88,17 @@ export default function WardrobePage() {
     }
   };
 
+  const handleEditItem = (item: ClothingItem) => {
+    setEditingItem(item);
+    setShowEditDialog(true);
+  };
+
+  const handleEditSuccess = () => {
+    loadWardrobeItems();
+  };
+
   const handleOpenUploader = () => {
+    setEditingItem(null); // Clear any editing item
     setShowUploader(true);
     // Scroll to top when uploader opens
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -141,6 +154,7 @@ export default function WardrobePage() {
               <Button
               onClick={handleOpenUploader}
               size="lg"
+              variant="outline"
               className="shadow-md hover:shadow-lg transition-shadow whitespace-nowrap"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -201,7 +215,11 @@ export default function WardrobePage() {
           </div>
         ) : (
           <div className="animate-in fade-in duration-300">
-            <WardrobeCategoryGrid items={filteredItems} onDelete={handleDeleteItem} />
+            <WardrobeCategoryGrid 
+              items={filteredItems} 
+              onDelete={handleDeleteItem}
+              onEdit={handleEditItem}
+            />
           </div>
         )}
 
@@ -215,6 +233,14 @@ export default function WardrobePage() {
             <Plus className="w-6 h-6" />
           </button>
         )}
+
+        {/* Edit Item Dialog */}
+        <EditItemDialog
+          item={editingItem}
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          onSuccess={handleEditSuccess}
+        />
       </div>
     </div>
   );

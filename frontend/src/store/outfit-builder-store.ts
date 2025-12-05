@@ -244,7 +244,8 @@ export const useOutfitBuilderStore = create<OutfitBuilderState>()(
       },
 
       setSelectedItem: (itemId: string | null) => {
-        set({ selectedItemId: itemId });
+  console.log('setSelectedItem called with:', itemId);
+  set({ selectedItemId: itemId });
       },
 
       saveOutfit: (name: string, occasion?: string) => {
