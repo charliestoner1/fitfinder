@@ -57,15 +57,15 @@ export function ClothingItemCard({ item, onDelete, onEdit }: ClothingItemCardPro
 
   return (
     <>
-      <Card className="group hover:shadow-lg transition-shadow overflow-hidden">
+      <Card className="group hover:shadow-lg transition-shadow overflow-hidden h-full flex flex-col justify-between">
         {/* Image */}
-        <div className="relative aspect-square bg-gray-100">
+        <div className="relative bg-gray-100 flex items-center justify-center" style={{ minHeight: '260px', maxHeight: '260px', height: '260px' }}>
           <img
             src={getImageUrl(item.itemImage)}
             alt={item.name || item.category || 'Clothing item'}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
+            style={{ maxHeight: '260px', minHeight: '260px', height: '260px' }}
           />
-          
           {/* Action Menu */}
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
@@ -96,7 +96,7 @@ export function ClothingItemCard({ item, onDelete, onEdit }: ClothingItemCardPro
         </div>
 
         {/* Details */}
-        <CardContent className="p-4">
+        <CardContent className="p-4 flex-1 flex flex-col justify-end">
           <div className="space-y-2">
             {/* Item Name */}
             {item.name && (
@@ -169,6 +169,8 @@ export function ClothingItemCard({ item, onDelete, onEdit }: ClothingItemCardPro
             <Button
               variant="destructive"
               onClick={handleDeleteConfirm}
+              className="text-black border border-pink-200 hover:bg-pink-50"
+              style={{ background: 'white' }}
             >
               Delete
             </Button>
