@@ -27,3 +27,10 @@ transformers>=4.49.0
 huggingface-hub>=0.25.0
 einops>=0.8.0
 timm>=0.9.0
+
+# --- Production deployment ---
+gunicorn>=22.0.0
+psycopg2-binary>=2.9.0
+whitenoise>=6.6.0
+django-environ>=0.11.0
+

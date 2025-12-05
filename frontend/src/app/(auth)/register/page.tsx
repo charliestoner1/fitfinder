@@ -1,12 +1,8 @@
-import { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-export const metadata: Metadata = {
-  title: 'Sign Up | FitFinder',
-  description: 'Create your FitFinder account',
-};
 
 export default function RegisterPage() {
   return (
